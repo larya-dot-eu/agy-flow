@@ -1,0 +1,24 @@
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Secrets & Environment Variables
+.env
+.env.*
+*.pem
+*.key
+*.token
+credentials.json
+*.secret
+
+# Logs & Temporary Files
+*.log
+tmp/
+temp/
+scratch/
+.system_generated/

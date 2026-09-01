@@ -1,0 +1,8 @@
+{
+  "name": "agy-flow",
+  "version": "1.0.0",
+  "description": "Modular 10-Phase Engineering Lifecycle, Distributed Systems Architecture & ADR Suite for Google Antigravity CLI",
+  "author": "Larya",
+  "homepage": "https://github.com/larya-dot-eu/agy-flow",
+  "license": "MIT"
+}
