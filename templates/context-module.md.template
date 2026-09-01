@@ -1,0 +1,37 @@
+# Module Context: [Module / Subsystem Name]
+
+> **Bounded Context**: [Domain Name]  
+> **Last Verified**: [YYYY-MM-DD] (Release [vX.Y.Z / Commit Hash])
+
+---
+
+## 1. Purpose & Responsibility <!-- ANCHOR: PURPOSE -->
+[Concise 2–3 sentence description: What does this module do, and why does it exist?]
+
+---
+
+## 2. Public Interfaces & Contracts <!-- ANCHOR: CONTRACTS -->
+| Interface / Endpoint / Tool | Auth / Access | Input Schema | Output Schema | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| `POST /api/v1/...` | Bearer Token | `RequestPayload` | `ResponseResult` | Primary ingestion endpoint |
+| `calculate_metric(...)` | Internal | `MetricInput` | `MetricOutput` | Pure domain calculation |
+
+---
+
+## 3. External Dependencies & Services <!-- ANCHOR: DEPENDENCIES -->
+- **Database / Storage**: [e.g. PostgreSQL `orders` table, Redis cache]
+- **External APIs / MCPs**: [e.g. Stripe API, GitHub MCP, Clerk Auth]
+- **Upstream Callers**: [e.g. `src/controllers/gateway.py`]
+- **Downstream Callee**: [e.g. `src/services/notification.py`]
+
+---
+
+## 4. Current Invariants & State <!-- ANCHOR: INVARIANTS -->
+- [x] [Implemented feature / capability]
+- [x] [Strict invariant: e.g. All timestamps must be UTC]
+- [ ] [Pending roadmap item]
+
+---
+
+## 5. Notes & Gotchas for Coding Agents <!-- ANCHOR: GOTCHAS -->
+- [Gotchas, performance boundaries, error recovery details, or API rate limits]

@@ -1,0 +1,73 @@
+# Specification: [Feature Name]
+
+- **Author**: [Author Name / Handle]
+- **Status**: Draft | Under Review | Approved | Implemented
+- **Date**: YYYY-MM-DD
+- **Target Release**: `vX.Y.Z`
+- **Target Branch**: `feature/YYYY-MM-DD-[feature-name]`
+- **Spec ID**: `SPEC-YYYY-MM-DD-[feature-name]`
+
+---
+
+## 1. Abstract <!-- ANCHOR: ABSTRACT -->
+[Concise 2–4 sentence summary of the feature, business rationale, and core architectural change.]
+
+---
+
+## 2. Terminology & RFC 2119 Keywords <!-- ANCHOR: RFC2119_KEYWORDS -->
+The key words **"MUST"**, **"MUST NOT"**, **"REQUIRED"**, **"SHALL"**, **"SHALL NOT"**, **"SHOULD"**, **"SHOULD NOT"**, **"RECOMMENDED"**, **"MAY"**, and **"OPTIONAL"** in this document are to be interpreted as described in RFC 2119.
+
+- **[Term 1]**: [Definition]
+- **[Term 2]**: [Definition]
+
+---
+
+## 3. System Architecture & Component Models <!-- ANCHOR: ARCHITECTURE -->
+
+```mermaid
+graph TD
+    A[Client / Ingestion] --> B[Domain Core / Service]
+    B --> C[Persistence / DB]
+    B --> D[External Service / MCP]
+```
+
+---
+
+## 4. Normative Requirements <!-- ANCHOR: NORMATIVE_REQUIREMENTS -->
+
+### 4.1. [Subsystem / Component Requirement 1]
+1. The system **MUST** [exact behavior].
+2. The payload schema **SHALL** conform to:
+   ```json
+   {
+     "key": "string"
+   }
+   ```
+
+### 4.2. [Subsystem / Component Requirement 2]
+1. The system **MUST NOT** [prohibited action].
+
+---
+
+## 5. Non-Functional Requirements & Invariants <!-- ANCHOR: INVARIANTS -->
+
+1. **Performance & Latency SLAs**: Response time **MUST** be $\le X\text{ms}$ at $p95$.
+2. **Security & Auth Boundaries**: [Auth requirements, secrets management, input sanitization].
+3. **Data Integrity & Invariants**: [Strict state rules that must never be violated].
+
+---
+
+## 6. Acceptance Criteria & Verification Matrix <!-- ANCHOR: VERIFICATION_MATRIX -->
+
+| Criteria ID | Requirement Description | Verification Method | Pass Criteria |
+| :--- | :--- | :--- | :--- |
+| **AC-01** | [Behavior 1] | Automated Unit Test | Assert return code 200 |
+| **AC-02** | [Behavior 2] | Integration Test | Assert database record created |
+
+---
+
+## 7. Rollback & Contingency Runbook <!-- ANCHOR: ROLLBACK -->
+
+- **Rollback Trigger**: [Failure threshold / metric spike]
+- **Rollback Command**: `git revert [hash]` or `feature_flag.disable([key])`
+- **Data Recovery**: [Data mitigation steps if migration occurred]

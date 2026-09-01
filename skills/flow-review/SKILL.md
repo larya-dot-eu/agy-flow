@@ -3,7 +3,7 @@ name: flow-review
 description: >-
   Phase 5 of the 10-phase engineering lifecycle: Adversarial Review & Loop-back Routing.
   Dispatches an independent subagent auditor to red-team specifications and implementation plans
-  for completeness, security, buildability, and loop-back routing. Trigger with /flow-review.
+  for completeness, security, buildability, YAGNI simplicity, and loop-back routing. Trigger with /flow-review.
 risk: critical
 source: unified-superpowers
 ---
@@ -27,6 +27,7 @@ Perform an independent, calibrated adversarial audit of the Specification (`docs
                │   - Completeness & Zero-Placeholder Audit              │
                │   - Spec-to-Plan Traceability & Invariant Check        │
                │   - Buildability & Concurrency/Security Analysis       │
+               │   - 💡 YAGNI Simplicity & Dead-Code Pruning Audit      │
                │   - Review Calibration (Blockers vs Advisory Notes)    │
                └───────────────────────────┬────────────────────────────┘
                                            │
@@ -47,7 +48,7 @@ Loop back to:                       Loop back to:                       Loop bac
 ```
 
 <HARD-GATE>
-Do NOT proceed to implementation (/flow-tdd) until all 4 audit categories pass with zero blocking defects.
+Do NOT proceed to implementation (/flow-tdd) until all audit categories pass with zero blocking defects.
 Only genuine blockers halt progress—advisory recommendations do NOT block approval.
 </HARD-GATE>
 
@@ -59,14 +60,14 @@ Auditors must strictly separate **Blockers** from **Advisory Recommendations**:
 
 | Category | Definition | Action |
 | :--- | :--- | :--- |
-| **BLOCKER (Halts Approval)** | Critical issues causing implementation failure: missing acceptance criteria, placeholder code (`TODO`/`TBD`), contradictory steps, undefined types, security bypasses, or tasks too vague to execute. | **Triggers Loop-Back**. Must be resolved before `/flow-tdd`. |
+| **BLOCKER (Halts Approval)** | Critical issues causing implementation failure: missing acceptance criteria, placeholder code (`TODO`/`TBD`), contradictory steps, undefined types, security bypasses, unrequested abstractions (YAGNI violations), or tasks too vague to execute. | **Triggers Loop-Back**. Must be resolved before `/flow-tdd`. |
 | **ADVISORY (Does NOT Block)** | Minor phrasing preferences, alternate variable naming, stylistic preferences, or non-critical "nice to have" suggestions. | **Recorded in scorecard**, but approval is **GRANTED**. |
 
 ---
 
-## 2. The 4 Audit Dimensions
+## 2. The 5 Audit Dimensions
 
-The auditor audits against 4 core categories:
+The auditor audits against 5 core categories:
 
 1. **Completeness & Zero Placeholders**:
    - Zero `TODO`, `TBD`, or `"implement later"` statements in spec or plan.
@@ -80,6 +81,10 @@ The auditor audits against 4 core categories:
 4. **Security, Concurrency & Blast Radius**:
    - Boundary inputs validated, auth checks in place, zero credentials in fixtures.
    - Database transactions, mutexes, idempotency keys, and rollback steps verified.
+5. **YAGNI Simplicity & Dead-Code Pruning**:
+   - **Single-Use Abstraction Check**: Are there generic wrappers, factories, or interfaces built for single-use logic? (Flag as Blocker).
+   - **Speculative Feature Check**: Are there unrequested configuration options, flags, or error branches for impossible states? (Flag as Blocker).
+   - **Orphaned Code & Imports Check**: Did proposed edits leave behind unused imports, functions, or dead files? (Require removal in plan).
 
 ---
 
@@ -91,37 +96,13 @@ To guarantee objectivity, the lead orchestrator dispatches an independent subage
 {
   "TypeName": "self",
   "Role": "Adversarial Plan Auditor",
-  "Prompt": "You are an adversarial document auditor and principal systems architect. Perform a calibrated, ruthless red-team audit of the implementation plan at docs/plans/YYYY-MM-DD-[feature]-plan.md against the specification at docs/specs/YYYY-MM-DD-[feature]-spec.md.\n\nAudit Dimensions:\n1. Completeness & Zero Placeholders (Scan for TODO, TBD, unwritten code blocks)\n2. Spec-to-Plan Traceability (1-to-1 AC-XX mapping, type consistency)\n3. Buildability & Task Granularity (2-5 min steps, no missing context)\n4. Security, Concurrency & Rollback Runbook\n\nCalibration Rule:\nONLY flag issues that would cause runtime failures, security holes, implementation deadlocks, or spec divergence as BLOCKERS. Phrasing preferences and stylistic choices are ADVISORY and must not block approval.\n\nOutput the standard Adversarial Review Scorecard with Status (APPROVED | REVISION REQUIRED), Blocking Issues, and Advisory Recommendations."
+  "Prompt": "You are an adversarial document auditor and principal systems architect. Perform a calibrated, ruthless red-team audit of the implementation plan at docs/plans/YYYY-MM-DD-[feature]-plan.md against the specification at docs/specs/YYYY-MM-DD-[feature]-spec.md.\n\nAudit Dimensions:\n1. Completeness & Zero Placeholders (Scan for TODO, TBD, unwritten code blocks)\n2. Spec-to-Plan Traceability (1-to-1 AC-XX mapping, type consistency)\n3. Buildability & Task Granularity (2-5 min steps, no missing context)\n4. Security, Concurrency & Rollback Runbook\n5. YAGNI Simplicity & Dead-Code Audit (Flag single-use abstractions and speculative flexibility as BLOCKERS)\n\nCalibration Rule:\nONLY flag issues that would cause runtime failures, security holes, implementation deadlocks, spec divergence, or YAGNI bloat as BLOCKERS. Phrasing preferences are ADVISORY.\n\nOutput the standard Adversarial Review Scorecard with Status (APPROVED | REVISION REQUIRED)."
 }
 ```
 
-Detailed reference template: [`references/auditor-prompt.md`](references/auditor-prompt.md).
-
 ---
 
-## 4. The 3-Way Loop-Back Decision Engine
-
-When blocking defects are discovered, route precisely to the responsible lifecycle phase:
-
-```text
-               ┌───────────────────────┐
-               │ Adversarial Findings  │
-               └───────────┬───────────┘
-                           │
-       ┌───────────────────┼───────────────────┐
-       ▼                   ▼                   ▼
-[Major Domain /     [Contract / Schema  [Task Scaffolding /
- Architecture Gap]   Ambiguity in Spec]  Missing Code in Plan]
-       │                   │                   │
-       ▼                   ▼                   ▼
-Loop back to:       Loop back to:       Loop back to:
-/flow-brainstorm    /flow-spec          /flow-plan
-(Phase 01-02)       (Phase 03)          (Phase 04)
-```
-
----
-
-## 5. Standardized Review Scorecard Output
+## 4. Standardized Review Scorecard Output
 
 ```markdown
 # Adversarial Review Scorecard: [Feature Name]
@@ -138,18 +119,18 @@ Loop back to:       Loop back to:       Loop back to:
 2. **Spec-to-Plan Traceability**: [PASS / FAIL] — [Notes]
 3. **Buildability & Granularity**: [PASS / FAIL] — [Notes]
 4. **Security, Concurrency & Rollback**: [PASS / FAIL] — [Notes]
+5. **YAGNI Simplicity & Anti-Overengineering**: [PASS / FAIL] — [Notes]
 
 ---
 
 ### Blocking Issues (Require Resolution Before Implementation)
-- [Task X.Y / Spec Section Z]: [Specific blocking defect and why it causes failure] — [Required Fix]
+- [Task X.Y / Spec Section Z]: [Specific blocking defect] — [Required Fix]
 *(If none, state: "None. Zero blocking defects.")*
 
 ---
 
 ### Advisory Recommendations (Non-Blocking)
 - [Suggestion 1]
-- [Suggestion 2]
 
 ---
 
@@ -160,7 +141,7 @@ Loop back to:       Loop back to:       Loop back to:
 
 ---
 
-## 6. User Gate & Authorization
+## 5. User Gate & Authorization
 
 1. Present the completed Review Scorecard to the user.
 2. If approved, ask for final confirmation:

@@ -6,22 +6,69 @@ Thumbs.db
 *~
 .idea/
 .vscode/
+*.code-workspace
 
-# Secrets & Environment Variables
+# Secrets, Keys & Credentials
 .env
 .env.*
 *.pem
 *.key
 *.token
-credentials.json
 *.secret
+credentials.json
+auth.json
+*.id_rsa
+*.id_ed25519
+*.crt
+*.pfx
 
-# Logs & Temporary Files
+# Terminal History & System Metadata
+*.history
+*.sh_history
+*.bash_history
+*.zsh_history
+.bash_history
+.zsh_history
+*.transcript.*
+*.jsonl
+
+# Logs, Diagnostics & Temporary Files
 *.log
 tmp/
 temp/
 scratch/
+brain/
+artifacts/
 .system_generated/
+.gemini/
+.agents/
+.antigravity/
 
-# Local Roadmap & Private Notes
+# Local Roadmaps, Ideas & Private Notes
 ROADMAP.md
+notes/
+ideas/
+private/
+drafts/
+*.draft.md
+*notes*.md
+*.local
+*.local.*
+config.local.*
+
+# agy-flow Lifecycle Artifacts (Keep directory skeleton, ignore generated files)
+docs/specs/*
+!docs/specs/.gitkeep
+!docs/specs/README.md
+
+docs/plans/*
+!docs/plans/.gitkeep
+!docs/plans/README.md
+
+docs/context/*
+!docs/context/.gitkeep
+!docs/context/README.md
+
+docs/adr/*
+!docs/adr/.gitkeep
+!docs/adr/README.md

@@ -1,8 +1,8 @@
 ---
 name: flow-release
 description: >-
-  Phase 8, 9 & 10 of the 10-phase engineering lifecycle: Post-Implementation Verification, Living Docs Updates, and Safe Release.
-  Runs comprehensive verification, syncs living documentation, and executes safe release gates.
+  Phase 8, 9 & 10 of the 10-phase engineering lifecycle: Post-Implementation Verification, Living Context Sync, and Safe Release.
+  Runs comprehensive verification, diff-to-context audits, and executes safe release gates.
   Trigger with /flow-release.
 risk: critical
 source: unified-flow
@@ -24,15 +24,17 @@ Ensure production-grade quality, synchronize living documentation, and execute s
                                  │
                                  ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │ Phase 09: Living Docs Synchronization                       │
-  │   - Update README.md, Architecture Guides, API Docs         │
+  │ Phase 09: Living Context & Living Docs Synchronization       │
+  │   - 💡 Diff-to-Context Audit: Sync docs/context/*.md        │
   │   - 💡 ADR Gate: Verify docs/adr/ records & index synced   │
+  │   - Update README.md, Architecture Guides, API Docs         │
   │   - Sync docs/specs/ and docs/plans/ to As-Built Reality    │
   └──────────────────────────────┬──────────────────────────────┘
                                  │
                                  ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │ Phase 10: Safe Release & PR Finalization                    │
+  │ Phase 10: Safe Release, Dead-Code Pruning & PR Finalization │
+  │   - Verify Final Dead-Code & Orphaned Imports Pruning       │
   │   - Draft Changelog & Semantic Version Bump                 │
   │   - Verify Rollback Runbook & Feature Flags                 │
   │   - Generate Pull Request Summary & Verification Evidence   │
@@ -58,15 +60,19 @@ Execute the complete verification battery across all test boundaries:
 
 ---
 
-## 2. Phase 9: Living Docs Synchronization
+## 2. Phase 9: Living Context & Living Docs Synchronization
 
 Keep repository documentation synchronized with codebase changes:
 
-### Documentation Sync Checklist
-- **`README.md` / Getting Started**: Update CLI usage examples, environment variables, or setup instructions if modified.
-- **Architecture Documentation & ADR Gate**: Verify that any architectural decisions or pattern changes introduced in this lifecycle have corresponding records in `docs/adr/NNNN-[title].md` and that `docs/adr/README.md` is updated.
-- **API Documentation**: Update OpenAPI/Swagger schemas, GraphQL schemas, or interface reference docs.
-- **Spec & Plan Archival**: Update `docs/specs/` and `docs/plans/` status to `Status: Implemented` and note any approved delta.
+### Living Context Diff-Audit Gate
+1. Execute `git diff --name-only <base-branch>...HEAD` to identify all changed files.
+2. For each changed file matching a `## Context Routing Map` entry in `GEMINI.md`:
+   - Inspect changes in exported functions, HTTP routes, MCP tools, and external services.
+   - Synchronize `docs/context/[module].md` interface tables and invariant checkboxes.
+   - Update the `Last Verified` date in the document header.
+3. If a new subsystem folder was created, prompt the user to register it in `GEMINI.md`.
+4. **ADR Gate**: Verify records in `docs/adr/NNNN-[title].md` and `docs/adr/README.md`.
+5. **Spec & Plan Archival**: Update `docs/specs/` and `docs/plans/` status to `Status: Implemented` and note any approved delta.
 
 ---
 
@@ -75,6 +81,7 @@ Keep repository documentation synchronized with codebase changes:
 Prepare the branch for production release or pull request merge:
 
 ### Release Gate Checklist
+- [ ] **Dead-Code Pruning**: Verify that all orphaned imports, functions, and dead code have been completely removed.
 - [ ] **Changelog**: Add entry following [Keep a Changelog](https://keepachangelog.com/) standards.
 - [ ] **Semantic Versioning**: Determine version bump (Patch / Minor / Major) according to SemVer rules.
 - [ ] **Rollback Runbook**: Confirm clear rollback commands in case of production regression.
@@ -92,30 +99,12 @@ Output the completed release summary upon lifecycle closure:
 - **Branch**: `feature/YYYY-MM-DD-[feature]`
 - **Spec**: `docs/specs/YYYY-MM-DD-[feature]-spec.md` (Status: Implemented)
 - **Plan**: `docs/plans/YYYY-MM-DD-[feature]-plan.md` (Status: Implemented)
+- **Context Docs**: `docs/context/` (Status: Synced & Verified)
 - **ADRs**: `docs/adr/` (Status: Synced)
 - **Verification**: ALL PASSED (Unit, Integration, Linters)
 
 ---
 
 ### Key Deliverables
-- [Summary of newly added components / capabilities]
-- [Summary of updated tests]
-- [Summary of updated documentation]
-
----
-
-### Pull Request Summary
-```markdown
-## Summary
-[High-level overview of changes]
-
-## Key Changes
-- [Component A]: [Change]
-- [Component B]: [Change]
-
-## Verification
-- Unit Tests: Passed (`[command]`)
-- Integration Tests: Passed (`[command]`)
-- Linters: Clean (`[command]`)
-```
+- [Summary of delivered capabilities]
 ```

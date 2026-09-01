@@ -2,7 +2,7 @@
 name: flow-brainstorm
 description: >-
   Phase 1 & 2 of the 10-phase engineering lifecycle: Context Priming & Superpowers Exploration.
-  Classifies requests (Spike / Bounded / Architectural), turns vague ideas into validated designs
+  Classifies requests (Spike / Bounded / Architectural / Brownfield Onboarding), turns vague ideas into validated designs
   through disciplined one-question dialogue, renders native Mermaid architecture diagrams, and enforces
   the Understanding Lock & Spec Self-Review gates. Trigger with /flow-brainstorm.
 risk: critical
@@ -21,20 +21,19 @@ Turn raw ideas into **clear, validated designs and specifications** through stru
               │  - Spike                  │
               │  - Bounded                │
               │  - Architectural          │
+              │  - Brownfield Onboarding  │
               └─────────────┬─────────────┘
                             │
-       ┌────────────────────┼────────────────────┐
-       ▼                    ▼                    ▼
-   [SPIKE]              [BOUNDED]         [ARCHITECTURAL]
-  - 2-3 sentence probe - Context check   - Decomposition check
-  - Human nod          - 1-2 Qs          - Deep 1-by-1 Qs (ask_question)
-  - Execute probe      - Short in-chat   - Non-functional reqs
-  - Report findings      design          - 💡 Mandatory /flow-architect hook
-                       - Human approval  - Understanding Lock (Hard Gate)
-                       - Direct TDD      - 2-3 Approaches (Mermaid diagrams)
-                                         - Incremental design sections
-                                         - Spec draft + Self-Review check
-                                         - Hand-off to /flow-spec & /flow-plan
+       ┌────────────────────┼────────────────────┬─────────────────────┐
+       ▼                    ▼                    ▼                     ▼
+   [SPIKE]              [BOUNDED]         [ARCHITECTURAL]        [ONBOARDING]
+  - 2-3 sentence probe - Context check   - Decomposition check  - 4-Stage Repo Scan
+  - Human nod          - 1-2 Qs          - Deep 1-by-1 Qs       - Discover Subsystems
+  - Execute probe      - Short in-chat   - Non-functional reqs  - Generate docs/context/
+  - Report findings      design          - 💡 Mandatory hook     - Build GEMINI.md map
+                       - Human approval  - Understanding Lock   - Human Approval
+                       - Direct TDD      - Spec (templates/)
+                                         - Hand-off to /flow-plan
 ```
 
 <HARD-GATE>
@@ -44,35 +43,41 @@ Every path ends with your human partner explicitly approving your intent before 
 
 ---
 
-## 1. Operating Mode
+## 1. Operating Mode & Startup Self-Healing
 
 You operate as a **Design Facilitator and Senior Reviewer**, not an impetuous builder:
 - **No speculative features**: YAGNI ruthlessly.
 - **No silent assumptions**: Make every assumption explicit.
 - **No skipping ahead**: Slow the process down just enough to get it right.
-- **Path-bound terminal states**: Only architectural tasks produce full spec/plan files; bounded tasks use concise in-chat designs; spikes produce findings.
+- **Startup Self-Healing Staleness Detection**:
+  When opening a mapped context file (`docs/context/[module].md`), compare the `Last Verified` timestamp against the latest git commit affecting the mapped source directory (`git log -1 --format=%ct -- <mapped-path>`). If code is newer than the context doc, inform the user and execute a fast delta-sync of the interface table before planning.
 
 ---
 
-## 2. Three Paths Classification
+## 2. Four Paths Classification
 
 Before your first question, classify the request and state it clearly so the human partner can confirm or override:
 
 ### Path A: Spike
 - **Definition**: A feasibility or discovery question (*"can we..."*, *"is it possible to..."*, *"quick probe"*).
 - **Output**: An answer/recommendation, not code to keep.
-- **Workflow**: Present the question and probe plan in 2–3 sentences $\rightarrow$ get human nod $\rightarrow$ investigate cheaply $\rightarrow$ report recommendation. Anything built stays strictly labeled throwaway.
+- **Workflow**: Present probe plan in 2–3 sentences $\rightarrow$ get human nod $\rightarrow$ investigate cheaply $\rightarrow$ report recommendation.
 
 ### Path B: Bounded
-- **Definition**: A well-scoped change to code that already exists in this repository (a new flag, a small endpoint, a localized fix). If there is no existing flow to change, the task is **not** bounded.
-- **Workflow**: Check context $\rightarrow$ ask 1–2 clarifying questions $\rightarrow$ present short design IN CHAT (approach, files touched, testing strategy) $\rightarrow$ **STOP and wait for approval** $\rightarrow$ proceed directly to implementation/TDD (no spec file, no plan doc).
+- **Definition**: A well-scoped change to code that already exists in this repository.
+- **Workflow**: Check context $\rightarrow$ ask 1–2 clarifying questions $\rightarrow$ present short design IN CHAT $\rightarrow$ **STOP and wait for approval** $\rightarrow$ proceed directly to implementation/TDD.
 
 ### Path C: Architectural
-- **Definition**: New features, new subsystems, major refactorings, or alterations to public interfaces and system invariants.
-- **Workflow**: Follow the full architectural design and spec process below.
+- **Definition**: New features, new subsystems, major refactorings, or alterations to public interfaces.
+- **Workflow**: Follow the full architectural design and spec process below using `templates/spec.md.template`.
 
-> [!IMPORTANT]
-> **One-Way Ratchet**: When in doubt between two paths, always take the heavier one. If hidden complexity is discovered mid-task, immediately upgrade the path, declare the change, and step up. Nothing ever downgrades mid-task.
+### Path D: Brownfield Onboarding Protocol
+- **Definition**: Existing or legacy repository without prior documentation or context routing map.
+- **Workflow**: Execute the 4-Stage Onboarding Recipe:
+  1. **Stage 1 (Topology Probe)**: Read manifest files (`package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`), discover scripts, and inspect entry points without modifying code.
+  2. **Stage 2 (Subsystem Boundaries)**: Identify core modules, data stores, background jobs, external services, and auth/billing integrations.
+  3. **Stage 3 (Context Generation)**: Author structured `docs/context/[subsystem].md` files for discovered core modules using `templates/context-module.md.template`.
+  4. **Stage 4 (Router Registration)**: Populate `GEMINI.md` with conventions, standard dev/test commands, and the `## Context Routing Map`.
 
 ---
 
@@ -102,12 +107,12 @@ Before asking detailed questions on Architectural requests:
 
 ### Step 1: Understand Current Context & Boundaries
 - Review existing files, documentation, recent commits, and architectural patterns.
-- Design for isolation: break systems into cohesive units with single responsibilities and clear interfaces.
+- Check `## Context Routing Map` in `GEMINI.md` before broad directory scanning.
 - Respect existing codebase conventions; limit refactoring to code directly touched by the goal.
 
 ### Step 2: Understand the Idea (One Question at a Time)
 - **Rule**: Ask **one question per message**.
-- When presenting distinct alternatives, leverage Antigravity's interactive `ask_question` tool or structured multiple-choice formatting.
+- When presenting distinct alternatives, leverage Antigravity's interactive `ask_question` tool.
 - Focus on: core purpose, target users, constraints, success criteria, and explicit non-goals.
 
 ### Step 3: Clarify Non-Functional Requirements (Mandatory)
@@ -135,11 +140,10 @@ Then ask:
 **Do NOT proceed to design until explicit confirmation is received.**
 
 ### Step 6: Explore Approaches with Native Visuals & Diagrams
-- Propose **2–3 viable approaches** with explicit trade-offs (complexity, extensibility, risk, maintenance).
+- Propose **2–3 viable approaches** with explicit trade-offs.
 - Lead with your recommended option and reasoning.
 - **YAGNI ruthlessly**: Strip out speculative features.
-- **Render Visual Architecture**: Use native **Mermaid diagrams** (`graph TD`, `sequenceDiagram`, `stateDiagram-v2`, `erDiagram`) directly in the conversation to visualize component layouts and data flow.
-- For visual UI wireframe questions, provide visual mockups or UI artifacts.
+- **Render Visual Architecture**: Use native **Mermaid diagrams** directly in the conversation.
 
 ### Step 7: Present the Design Incrementally
 - Break design presentation into modular chunks of **200–300 words**.
@@ -154,10 +158,10 @@ Maintain a running record throughout the session:
 
 ---
 
-## 6. Documentation & Spec Self-Review
+## 6. Specification Authoring & Spec Self-Review
 
 ### Specification Authoring
-For Architectural paths, write the finalized design to:
+For Architectural paths, write the finalized design using [`templates/spec.md.template`](../../templates/spec.md.template) to:
 `docs/specs/YYYY-MM-DD-[feature]-spec.md`
 
 ### 4-Point Spec Self-Review (Mandatory Inline Audit)
@@ -177,5 +181,6 @@ Present the written spec link to the user:
 
 You may exit `/flow-brainstorm` only when:
 - **Spike**: Finding/recommendation reported; temporary probe discarded.
-- **Bounded**: In-chat design approved by user $\rightarrow$ hand off directly to `/flow-tdd` (or normal workflow).
+- **Bounded**: In-chat design approved by user $\rightarrow$ hand off directly to `/flow-tdd`.
 - **Architectural**: Spec document written, self-reviewed, and approved by user $\rightarrow$ hand off to **`/flow-plan`** (Phase 4).
+- **Brownfield Onboarding**: Initial `docs/context/` and `GEMINI.md` router written and approved by user.

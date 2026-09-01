@@ -1,0 +1,29 @@
+# [Project Name]
+
+## Stack <!-- ANCHOR: STACK -->
+- Languages: [e.g. TypeScript 5+, Python 3.12+, Rust 2021]
+- Frameworks & Libs: [e.g. Next.js, FastAPI, Axum, Tailwind]
+- Infrastructure & Storage: [e.g. PostgreSQL, Redis, Supabase, Vercel]
+
+## Context Routing Map <!-- ANCHOR: CONTEXT_ROUTING -->
+<!-- Map directories to persistent living documentation -->
+<!-- Example:
+- `/src/auth/`     -> docs/context/auth.md
+- `/src/api/`      -> docs/context/api.md
+- `/src/db/`       -> docs/context/database.md
+-->
+
+## Frequent Commands <!-- ANCHOR: COMMANDS -->
+```bash
+# Dev server
+npm run dev
+# Run test suite
+npm test
+# Build production bundle
+npm run build
+```
+
+## Agent Directives <!-- ANCHOR: DIRECTIVES -->
+- Check the `## Context Routing Map` before performing broad recursive searches.
+- Maintain persistent living documentation in `docs/context/` for structural changes.
+- Do not execute git push or destructive filesystem changes without explicit human request.

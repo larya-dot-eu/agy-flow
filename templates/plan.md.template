@@ -1,0 +1,101 @@
+# Implementation Plan: [Feature Name]
+
+> **For agentic workers:** Execute task-by-task using strict TDD cycles (Red -> Green -> Refactor -> Commit). Track progress via `- [ ]` / `- [x]` checkboxes. Every task must be self-contained and independently testable.
+
+- **Goal**: [One clear sentence describing what this implementation builds]
+- **Architecture**: [2–3 sentences summarizing component boundaries and data flow]
+- **Tech Stack**: [Languages, key frameworks, test runners, linters]
+- **Spec Reference**: [`docs/specs/YYYY-MM-DD-[feature]-spec.md`](../specs/YYYY-MM-DD-[feature]-spec.md)
+- **Status**: Draft | Under Review | Approved | In Implementation
+- **Branch Target**: `feature/YYYY-MM-DD-[feature-name]`
+
+---
+
+## 1. 5 Adversarial Questions Assessment <!-- ANCHOR: PREFLIGHT_AUDIT -->
+
+1. **Hidden Assumptions & Validation**: [Explicit findings regarding existing APIs, configs, or DB state]
+2. **Failure Modes & Defenses**: [Defensive patterns, timeout handling, concurrency boundaries]
+3. **Rollback Strategy**: [Exact step-by-step rollback runbook with zero data corruption]
+4. **Ordering & Migration Dependencies**: [Sequencing rules: DB schema migrations before code deployment]
+5. **Observability & Health Checks**: [Structured logs, metrics, healthcheck probes]
+
+---
+
+## 2. Global Constraints & Interfaces <!-- ANCHOR: GLOBAL_CONSTRAINTS -->
+
+- **Runtime & Language Floor**: [e.g. Node 20+, Python 3.11+, Rust 2021, Go 1.22+]
+- **Key Dependencies**: [Exact libraries and versions to use]
+- **File Structure Map**: List of all files created or modified with single responsibilities:
+  - `src/domain/[component].py` (Create)
+  - `src/adapters/[adapter].py` (Modify: L120-L150)
+  - `tests/unit/test_[component].py` (Create)
+
+---
+
+## 3. Milestone Breakdown & Bite-Sized Tasks <!-- ANCHOR: MILESTONES -->
+
+### Milestone 1: [Milestone Name]
+
+#### Task 1.1: [Unit / Component Name]
+**Task Boundary**: [Smallest unit carrying its own test cycle and independent review gate]
+
+**Files:**
+- Create: `src/domain/validator.py`
+- Test: `tests/unit/test_validator.py`
+
+**Interfaces:**
+- **Consumes**: [Exact signatures/types imported from earlier tasks or stdlib, e.g. `UserSession(id: str)`]
+- **Produces**: [Exact function names, parameters, and return types exported, e.g. `validate_token(token: str) -> Result[UserSession, AuthError]`]
+
+- [ ] **Step 1: Write the failing test (Red)**
+```python
+# tests/unit/test_validator.py
+import pytest
+from src.domain.validator import validate_token, AuthError
+
+def test_validate_token_expired_raises_error():
+    with pytest.raises(AuthError, match="Token expired"):
+        validate_token("expired.jwt.token")
+```
+
+- [ ] **Step 2: Run test to verify failure**
+Run: `pytest tests/unit/test_validator.py -v`
+Expected Output: `FAIL with ImportError or NameError: 'validate_token' is not defined`
+
+- [ ] **Step 3: Write minimal implementation (Green)**
+```python
+# src/domain/validator.py
+class AuthError(Exception):
+    pass
+
+def validate_token(token: str):
+    if token == "expired.jwt.token":
+        raise AuthError("Token expired")
+    return {"status": "valid"}
+```
+
+- [ ] **Step 4: Run test to verify green**
+Run: `pytest tests/unit/test_validator.py -v`
+Expected Output: `1 passed`
+
+- [ ] **Step 5: Refactor & Commit**
+```bash
+git add tests/unit/test_validator.py src/domain/validator.py
+git commit -m "feat(auth): implement token expiration validator with tests"
+```
+
+---
+
+## 4. Acceptance Criteria Verification Matrix <!-- ANCHOR: VERIFICATION_MATRIX -->
+
+| Spec Criteria ID | Test File & Function | Verification Command | Pass Criteria |
+| :--- | :--- | :--- | :--- |
+| **AC-01** | `tests/unit/test_validator.py::test_validate_token_expired_raises_error` | `pytest tests/unit/test_validator.py` | 1 passed, exit 0 |
+
+---
+
+## 5. Rollback & Contingency Runbook <!-- ANCHOR: ROLLBACK -->
+
+- **Rollback Trigger**: [Failure criteria]
+- **Rollback Command**: `git revert [commit-hash]`
+- **Feature Flag Key**: `flags.enable_feature` (default: `false`)
