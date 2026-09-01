@@ -4,10 +4,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform: Antigravity CLI](https://img.shields.io/badge/Platform-Google%20Antigravity%20CLI-orange.svg)](https://github.com/larya-dot-eu/agy-flow)
+[![Guide: HOWTO.md](https://img.shields.io/badge/Guide-HOWTO.md-green.svg)](HOWTO.md)
 
 ---
 
 ## Overview
+
+> 📖 **New to agy-flow?** Check out the step-by-step **[Complete User Guide (`HOWTO.md`)](HOWTO.md)** to learn how to pair-program with the 10-phase lifecycle.
 
 `agy-flow` transforms Google Antigravity CLI from a standard reactive assistant into a disciplined, senior pair programmer. It enforces rigorous engineering quality, eliminates the 20%–30% token waste from session amnesia, prevents premature coding and hidden assumptions, blocks out-of-sync commits with deterministic lifecycle hooks, and guides complex initiatives through a battle-tested 10-phase lifecycle.
 
