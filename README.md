@@ -48,27 +48,33 @@ graph TD
 
 ---
 
-## ⚡ Installation Options
+## ⚡ Installation & Updates
 
 Choose the installation method that best fits your workflow:
 
 ### Option 1: 1-Command Universal Installer (Recommended)
-Deploys all 10 skills, canonical templates, deterministic lifecycle hooks, and rules directly into `~/.gemini/config/`:
+Deploys all 11 skills, canonical templates, deterministic lifecycle hooks, and prime directives directly into `~/.gemini/config/`:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/larya-dot-eu/agy-flow/main/install-skills.sh | bash
 ```
 
-Or run locally from a cloned copy:
+Or install directly via Git (bypassing any CDN cache):
 ```bash
-git clone https://github.com/larya-dot-eu/agy-flow.git
-cd agy-flow
-./install-skills.sh
+git clone --depth 1 https://github.com/larya-dot-eu/agy-flow.git /tmp/agy-flow && /tmp/agy-flow/install-skills.sh && rm -rf /tmp/agy-flow
 ```
 
 ---
 
-### Option 2: Native Global Plugin Directory Mount
+### Option 2: Updating an Existing Installation (`/flow-version-update`)
+To update your installed skills to the latest version at any time:
+
+1. **In-Chat (Recommended)**: Simply ask Antigravity `/flow-version-update`.
+2. **From Terminal**: Re-run the 1-command installer above.
+
+---
+
+### Option 3: Native Global Plugin Directory Mount
 Install as an official, self-updating global Antigravity plugin:
 
 ```bash
@@ -78,7 +84,7 @@ git clone https://github.com/larya-dot-eu/agy-flow.git ~/.gemini/config/plugins/
 
 ---
 
-### Option 3: Project-Local Workspace Plugin
+### Option 4: Project-Local Workspace Plugin
 Mount `agy-flow` for a single repository only:
 
 ```bash
