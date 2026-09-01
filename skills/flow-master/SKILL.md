@@ -93,6 +93,16 @@ All lifecycle skills must load, follow, and preserve the section anchors in `tem
 ## 3. Pre-Flight Skill Invocation Rules
 
 Before taking any code modification action or proposing unvetted solutions:
-1. **Identify the Task Nature**: New feature, bug fix, refactor, architecture review, ADR, or release.
+1. **Identify the Task Nature**:
+   - New feature / Architecture / Refactor $\rightarrow$ `/flow` (or `/flow-brainstorm`)
+   - Specification authoring $\rightarrow$ `/flow-spec`
+   - Implementation plan authoring $\rightarrow$ `/flow-plan`
+   - Adversarial review $\rightarrow$ `/flow-review`
+   - TDD implementation $\rightarrow$ `/flow-tdd`
+   - Post-implementation & Release $\rightarrow$ `/flow-release`
+   - Distributed architecture $\rightarrow$ `/flow-architect`
+   - Architectural decisions $\rightarrow$ `/flow-adr`
+   - Authoring/testing skills $\rightarrow$ `/flow-skill-writer`
+   - In-chat version updates $\rightarrow$ `/flow-version-update`
 2. **Announce Skill Activation**: Explicitly state: `"Activating /flow-[phase] to [purpose]..."`
 3. **Follow the Active Phase Protocol**: Enforce the phase's input prerequisites, process steps, and exit gates.
