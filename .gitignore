@@ -22,3 +22,6 @@ tmp/
 temp/
 scratch/
 .system_generated/
+
+# Local Roadmap & Private Notes
+ROADMAP.md
