@@ -43,20 +43,43 @@ graph TD
 
 ---
 
-## ⚡ Quick Start: 1-Command Installation
+## ⚡ Installation Options
 
-Deploy the complete suite and global prime directives to your machine in seconds:
+Choose the installation method that best fits your workflow:
+
+### Option 1: 1-Command Universal Installer (Recommended)
+Deploys all 10 skills directly into `~/.gemini/config/skills/` and configures global `GEMINI.md` prime directives:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/larya-dot-eu/agy-flow/main/install-skills.sh | bash
 ```
 
-Or clone and run locally:
-
+Or run locally from a cloned copy:
 ```bash
 git clone https://github.com/larya-dot-eu/agy-flow.git
 cd agy-flow
 ./install-skills.sh
+```
+
+---
+
+### Option 2: Native Global Plugin Directory Mount
+Install as an official, self-updating global Antigravity plugin:
+
+```bash
+mkdir -p ~/.gemini/config/plugins
+git clone https://github.com/larya-dot-eu/agy-flow.git ~/.gemini/config/plugins/agy-flow
+```
+
+---
+
+### Option 3: Project-Local Workspace Plugin
+Mount `agy-flow` for a single repository only:
+
+```bash
+# Inside any project repository:
+mkdir -p .agents/plugins
+git clone https://github.com/larya-dot-eu/agy-flow.git .agents/plugins/agy-flow
 ```
 
 ---
@@ -80,7 +103,7 @@ cd agy-flow
 
 ## Core Principles & 4-Layer Defense Engine
 
-1. **Global Always-On Prime Directives (`GEMINI.md`)**: Automatically loaded on every turn across all directories. Mandates pre-flight skill execution and prevents agent drift.
+1. **Global Always-On Prime Directives (`GEMINI.md` / `AGENTS.md`)**: Automatically loaded on every turn across all directories. Mandates pre-flight skill execution and prevents agent drift.
 2. **Inter-Skill Hard Hooks**: Programmatically forces `/flow-architect` when distributed systems are detected, and `/flow-adr` when permanent architecture choices are made.
 3. **Physical File-Based Gates**: Progress is gated on durable filesystem artifacts (`docs/specs/`, `docs/plans/`, `docs/adr/`). Hallucinations cannot bypass file checks.
 4. **Independent Subagent Audits**: Critical review phases dispatch subagents with fresh context to ruthlessly red-team plans before human sign-off.
