@@ -25,6 +25,15 @@ if [ -n "$SCRIPT_SRC_DIR" ] && [ -d "$SCRIPT_SRC_DIR/skills" ]; then
     cp -r "${SCRIPT_SRC_DIR}/scripts/"* "${CONFIG_DIR}/scripts/"
     cp "${SCRIPT_SRC_DIR}/hooks.json" "${CONFIG_DIR}/hooks.json"
     chmod +x "${CONFIG_DIR}/scripts/"*.sh
+
+    # If installed as a global plugin, sync plugin copy as well
+    if [ -d "${CONFIG_DIR}/plugins/agy-flow" ]; then
+        echo "[+] Updating global plugin directory: ${CONFIG_DIR}/plugins/agy-flow"
+        mkdir -p "${CONFIG_DIR}/plugins/agy-flow/skills" "${CONFIG_DIR}/plugins/agy-flow/templates" "${CONFIG_DIR}/plugins/agy-flow/rules"
+        cp -r "${SCRIPT_SRC_DIR}/skills/"* "${CONFIG_DIR}/plugins/agy-flow/skills/"
+        cp -r "${SCRIPT_SRC_DIR}/templates/"* "${CONFIG_DIR}/plugins/agy-flow/templates/"
+        cp -r "${SCRIPT_SRC_DIR}/rules/"* "${CONFIG_DIR}/plugins/agy-flow/rules/"
+    fi
 fi
 
 if [ -f "${CONFIG_DIR}/rules/GEMINI.md" ]; then
