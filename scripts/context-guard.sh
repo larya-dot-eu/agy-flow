@@ -3,6 +3,15 @@
 
 MODE="${1:---check-stop}"
 
+exit_allow() {
+  if [ "$MODE" = "--check-commit" ]; then
+    echo '{"decision": "allow"}'
+  else
+    echo '{}'
+  fi
+  exit 0
+}
+
 # If invoked during PreToolUse (--check-commit), inspect stdin payload
 if [ "$MODE" = "--check-commit" ]; then
   # Read stdin safely
@@ -34,12 +43,7 @@ fi
 
 # Check if inside a git repository
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  if [ "$MODE" = "--check-commit" ]; then
-    echo '{"decision": "allow"}'
-  else
-    echo '{}'
-  fi
-  exit 0
+  exit_allow
 fi
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
@@ -54,36 +58,21 @@ elif [ -f "$REPO_ROOT/.agents/AGENTS.md" ]; then
 fi
 
 if [ -z "$GEMINI_FILE" ]; then
-  if [ "$MODE" = "--check-commit" ]; then
-    echo '{"decision": "allow"}'
-  else
-    echo '{}'
-  fi
-  exit 0
+  exit_allow
 fi
 
 # Extract Context Routing Map entries (e.g. "- `/src/api/` -> docs/context/api.md")
 MAPPINGS=$(awk '/## Context Routing Map/{flag=1; next} /^## /{flag=0} flag' "$GEMINI_FILE" 2>/dev/null | grep -E '^\s*-\s*`?[^`]+`?\s*->\s*[^ ]+' | sed -E 's/^[ -]*`?([^`]+)`?[ ]*->[ ]*([^ ]+)/\1|\2/' || true)
 
 if [ -z "$MAPPINGS" ]; then
-  if [ "$MODE" = "--check-commit" ]; then
-    echo '{"decision": "allow"}'
-  else
-    echo '{}'
-  fi
-  exit 0
+  exit_allow
 fi
 
 # Inspect git status with -uall so all individual files in directories are listed
 CHANGED_FILES=$(git status --porcelain -uall 2>/dev/null | sed 's/^...//' || true)
 
 if [ -z "$CHANGED_FILES" ]; then
-  if [ "$MODE" = "--check-commit" ]; then
-    echo '{"decision": "allow"}'
-  else
-    echo '{}'
-  fi
-  exit 0
+  exit_allow
 fi
 
 STALE_MODULES=""
@@ -132,9 +121,4 @@ EOF
   exit 0
 fi
 
-if [ "$MODE" = "--check-commit" ]; then
-  echo '{"decision": "allow"}'
-else
-  echo '{}'
-fi
-exit 0
+exit_allow
