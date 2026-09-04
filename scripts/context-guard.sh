@@ -88,6 +88,9 @@ fi
 
 STALE_MODULES=""
 
+LF=$'\n'
+PADDED_CHANGED_FILES="${LF}${CHANGED_FILES}${LF}"
+
 while IFS='|' read -r SRC_PATH DOC_PATH; do
   [ -z "$SRC_PATH" ] && continue
   SRC_PATH=$(echo "$SRC_PATH" | sed 's|^/||; s|/$||')
@@ -96,16 +99,13 @@ while IFS='|' read -r SRC_PATH DOC_PATH; do
   SRC_CHANGED=false
   DOC_CHANGED=false
   
-  while IFS= read -r FILE; do
-    [ -z "$FILE" ] && continue
-    # Exact directory boundary match (e.g. src/api/ or exact file src/api)
-    if [[ "$FILE" == "$SRC_PATH/"* || "$FILE" == "$SRC_PATH" ]]; then
-      SRC_CHANGED=true
-    fi
-    if [[ "$FILE" == "$DOC_PATH" ]]; then
-      DOC_CHANGED=true
-    fi
-  done <<< "$CHANGED_FILES"
+  # Exact directory boundary match (e.g. src/api/ or exact file src/api)
+  if [[ "$PADDED_CHANGED_FILES" == *"${LF}${SRC_PATH}/"* ]] || [[ "$PADDED_CHANGED_FILES" == *"${LF}${SRC_PATH}${LF}"* ]]; then
+    SRC_CHANGED=true
+  fi
+  if [[ "$PADDED_CHANGED_FILES" == *"${LF}${DOC_PATH}${LF}"* ]]; then
+    DOC_CHANGED=true
+  fi
   
   if [ "$SRC_CHANGED" = true ] && [ "$DOC_CHANGED" = false ]; then
     STALE_MODULES="${STALE_MODULES}\n- Subsystem '/${SRC_PATH}/' was modified but '${DOC_PATH}' was NOT updated."
