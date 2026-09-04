@@ -2,7 +2,7 @@
 set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TEST_DIR="/tmp/test-context-guard-$$"
+TEST_DIR=$(mktemp -d)
 mkdir -p "$TEST_DIR/src/api" "$TEST_DIR/src/api_v2" "$TEST_DIR/docs/context"
 cd "$TEST_DIR"
 git init -q
