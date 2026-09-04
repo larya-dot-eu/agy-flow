@@ -48,6 +48,17 @@ OUTPUT4=$(echo "$COMMIT_INPUT" | ./scripts/context-guard.sh --check-commit)
 echo "$OUTPUT4" | grep -q '"decision": "deny"' || { echo "Test 4 Failed! Output was: $OUTPUT4"; exit 1; }
 echo "Scenario 4 Passed: Git commit blocked on dirty mapped code."
 
+echo "Scenario 5: Synchronized source and doc updates"
+rm -f src/api/handler.js docs/context/api.md
+touch src/api/handler.js
+touch docs/context/api.md
+OUTPUT5=$(./scripts/context-guard.sh --check-stop)
+if [ "$OUTPUT5" != "{}" ]; then
+  echo "Test 5 Failed! Output was: $OUTPUT5"
+  exit 1
+fi
+echo "Scenario 5 Passed: Synchronized updates allowed."
+
 # Cleanup
 rm -rf "$TEST_DIR"
 echo "All context guard tests passed successfully!"
