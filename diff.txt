@@ -1,0 +1,126 @@
+diff --git a/tests/test_install_skills.sh b/tests/test_install_skills.sh
+new file mode 100755
+index 0000000..6a45471
+--- /dev/null
++++ b/tests/test_install_skills.sh
+@@ -0,0 +1,120 @@
++#!/usr/bin/env bash
++set -eo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++TEST_DIR="/tmp/test-install-skills-$$"
++export HOME="$TEST_DIR/home"
++
++mkdir -p "$HOME"
++cd "$TEST_DIR"
++
++# Ensure we're testing the current source
++cp -r "$SCRIPT_DIR/"* "$TEST_DIR/"
++cd "$TEST_DIR"
++
++echo "Scenario 1: Local Execution"
++./install-skills.sh
++
++CONFIG_DIR="${HOME}/.gemini/config"
++COMPAT_DIR="${HOME}/.gemini/antigravity"
++
++# Assert directories exist and are populated
++for d in skills rules templates scripts; do
++    if [ ! -d "${CONFIG_DIR}/$d" ]; then
++        echo "Test 1 Failed: Directory ${CONFIG_DIR}/$d missing"
++        exit 1
++    fi
++    # Check if directory has files (assuming src directories weren't empty)
++    if [ -z "$(ls -A ${CONFIG_DIR}/$d)" ]; then
++        echo "Test 1 Failed: Directory ${CONFIG_DIR}/$d is empty"
++        exit 1
++    fi
++done
++
++if [ ! -f "${CONFIG_DIR}/hooks.json" ]; then
++    echo "Test 1 Failed: hooks.json missing"
++    exit 1
++fi
++
++if [ ! -L "${COMPAT_DIR}/skills" ] || [ "$(readlink "${COMPAT_DIR}/skills")" != "${CONFIG_DIR}/skills" ]; then
++    echo "Test 1 Failed: Symlink ${COMPAT_DIR}/skills incorrect or missing"
++    exit 1
++fi
++echo "Scenario 1 Passed: Local execution completed successfully."
++
++echo "Scenario 2: Global Plugin Sync"
++rm -rf "$HOME"
++mkdir -p "$HOME"
++mkdir -p "${HOME}/.gemini/config/plugins/agy-flow"
++./install-skills.sh > /dev/null
++
++PLUGIN_DIR="${HOME}/.gemini/config/plugins/agy-flow"
++for d in skills rules templates; do
++    if [ ! -d "${PLUGIN_DIR}/$d" ]; then
++        echo "Test 2 Failed: Plugin directory ${PLUGIN_DIR}/$d missing"
++        exit 1
++    fi
++    if [ -z "$(ls -A ${PLUGIN_DIR}/$d)" ]; then
++        echo "Test 2 Failed: Plugin directory ${PLUGIN_DIR}/$d is empty"
++        exit 1
++    fi
++done
++echo "Scenario 2 Passed: Plugin directory sync successful."
++
++
++echo "Scenario 3: GEMINI.md Sync"
++rm -rf "$HOME"
++mkdir -p "$HOME"
++# Create dummy GEMINI.md in source rules to be copied
++mkdir -p rules
++touch rules/GEMINI.md
++./install-skills.sh > /dev/null
++
++if [ ! -f "${HOME}/.gemini/config/GEMINI.md" ]; then
++    echo "Test 3 Failed: GEMINI.md not synced"
++    exit 1
++fi
++echo "Scenario 3 Passed: GEMINI.md synced successfully."
++
++echo "Scenario 4: Remote Execution via Piped curl"
++rm -rf "$HOME"
++mkdir -p "$HOME"
++
++# Set up mock git
++mkdir -p "$TEST_DIR/bin"
++cat << 'MOCK_GIT' | sed 's/exit/exit/g' | sed 's/bash/bash/g' > "$TEST_DIR/bin/git"
++#!/usr/bin/env bash
++if [[ "$1" == "clone" ]]; then
++    # Extract destination dir
++    DEST="${@: -2:1}"
++    # Remove -q if it is the last argument
++    if [[ "${@: -1}" == "-q" ]]; then
++        DEST="${@: -2:1}"
++    else
++        DEST="${@: -1}"
++    fi
++
++    # Create dummy structure
++    mkdir -p "$DEST/skills" "$DEST/rules" "$DEST/templates" "$DEST/scripts"
++    touch "$DEST/skills/dummy.sh" "$DEST/rules/dummy.md" "$DEST/templates/dummy.txt" "$DEST/scripts/dummy.sh" "$DEST/hooks.json"
++    exit 0
++fi
++echo "Unexpected git command: $@"
++exit 1
++MOCK_GIT
++chmod +x "$TEST_DIR/bin/git"
++export PATH="$TEST_DIR/bin:$PATH"
++
++# Pipe execution
++cat ./install-skills.sh | bash > /dev/null
++
++# Verify mock clone was used and files were copied
++if [ ! -f "${HOME}/.gemini/config/skills/dummy.sh" ]; then
++    echo "Test 4 Failed: Remote install didn't copy mock files"
++    exit 1
++fi
++echo "Scenario 4 Passed: Remote execution handled successfully."
++
++# Cleanup
++rm -rf "$TEST_DIR"
++echo "All install-skills tests passed successfully!"
