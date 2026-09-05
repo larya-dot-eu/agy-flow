@@ -121,7 +121,7 @@ if [ -n "$STALE_MODULES" ]; then
     MSG="⚠️ Context Guard Alert: You modified code in mapped directories without synchronizing their living context documents:${STALE_MODULES}\n\nPlease update the relevant docs/context/ file(s) before completing this turn."
   fi
   
-  ESC_MSG=$(printf '%s' "$MSG" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null || printf '"%s"' "$MSG")
+  ESC_MSG=$(printf '%s' "$MSG" | jq -R -s -c '.' 2>/dev/null || printf '"%s"' "$MSG")
   
   cat <<EOF
 {
