@@ -63,7 +63,78 @@ if [ "$OUTPUT6" != "{}" ]; then
   echo "Test 6 Failed! Output was: $OUTPUT6"
   exit 1
 fi
+rm -f src/api/handler.js docs/context/api.md
 echo "Scenario 6 Passed: Synchronized updates allowed."
+
+echo "Scenario 7: Fallback to AGENTS.md"
+git rm -f GEMINI.md -q
+cat <<'EOF_AGENTS' > AGENTS.md
+# Test Project
+## Context Routing Map
+- `/src/api/` -> docs/context/api.md
+EOF_AGENTS
+git add AGENTS.md && git commit -m "use AGENTS.md" -q
+
+touch src/api/handler.js
+OUTPUT7=$(./scripts/context-guard.sh --check-stop)
+echo "$OUTPUT7" | grep -q '"decision": "continue"' || { echo "Test 7 Failed! Output was: $OUTPUT7"; exit 1; }
+echo "Scenario 7 Passed: Fallback to AGENTS.md works."
+
+echo "Scenario 8: Priority of GEMINI.md over AGENTS.md"
+cat <<'EOF_GEMINI2' > GEMINI.md
+# Test Project
+## Context Routing Map
+- `/src/api_v3/` -> docs/context/api_v3.md
+EOF_GEMINI2
+git add GEMINI.md && git commit -m "add GEMINI.md back" -q
+
+mkdir -p src/api_v3
+touch src/api_v3/handler.js
+rm src/api/handler.js
+OUTPUT8=$(./scripts/context-guard.sh --check-stop)
+echo "$OUTPUT8" | grep -q '"decision": "continue"' || { echo "Test 8 Failed! Priority not respected. Output was: $OUTPUT8"; exit 1; }
+
+rm src/api_v3/handler.js
+touch src/api/handler.js
+OUTPUT9=$(./scripts/context-guard.sh --check-stop)
+echo "$OUTPUT9" | grep -qv '"decision": "continue"' || { echo "Test 9 Failed! AGENTS.md was read instead of GEMINI.md. Output was: $OUTPUT9"; exit 1; }
+echo "Scenario 8 Passed: GEMINI.md prioritized over AGENTS.md."
+
+echo "Scenario 9: Priority of AGENTS.md over .agents/AGENTS.md"
+git rm -f GEMINI.md -q
+mkdir -p .agents
+cat <<'EOF_DOTAGENTS' > .agents/AGENTS.md
+# Test Project
+## Context Routing Map
+- `/src/api_v4/` -> docs/context/api_v4.md
+EOF_DOTAGENTS
+git add .agents/AGENTS.md && git commit -m "add .agents/AGENTS.md" -q
+
+mkdir -p src/api_v4
+# We already have AGENTS.md from Scenario 7 pointing to /src/api/
+# And .agents/AGENTS.md pointing to /src/api_v4/
+
+# Test AGENTS.md takes priority (src/api/ is watched, src/api_v4/ is NOT)
+mkdir -p src/api
+touch src/api/handler.js
+OUTPUT10=$(./scripts/context-guard.sh --check-stop)
+echo "$OUTPUT10" | grep -q '"decision": "continue"' || { echo "Test 10 Failed! Priority of AGENTS.md not respected. Output was: $OUTPUT10"; exit 1; }
+
+rm src/api/handler.js
+touch src/api_v4/handler.js
+OUTPUT11=$(./scripts/context-guard.sh --check-stop)
+echo "$OUTPUT11" | grep -qv '"decision": "continue"' || { echo "Test 11 Failed! .agents/AGENTS.md was read instead of AGENTS.md. Output was: $OUTPUT11"; exit 1; }
+echo "Scenario 9 Passed: AGENTS.md prioritized over .agents/AGENTS.md."
+
+echo "Scenario 10: Fallback to .agents/AGENTS.md"
+git rm -f AGENTS.md -q
+git commit -m "remove AGENTS.md" -q
+
+# .agents/AGENTS.md pointing to /src/api_v4/ is active
+touch src/api_v4/handler.js
+OUTPUT12=$(./scripts/context-guard.sh --check-stop)
+echo "$OUTPUT12" | grep -q '"decision": "continue"' || { echo "Test 12 Failed! Fallback to .agents/AGENTS.md not respected. Output was: $OUTPUT12"; exit 1; }
+echo "Scenario 10 Passed: Fallback to .agents/AGENTS.md works."
 
 # Cleanup
 rm -rf "$TEST_DIR"
