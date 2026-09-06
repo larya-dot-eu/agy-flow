@@ -32,12 +32,18 @@ echo " Deploying Antigravity Global Flow Skills Suite"
 echo " Target Directory: ${CONFIG_DIR}"
 echo "================================================================="
 
-mkdir -p "${CONFIG_DIR}/skills" "${CONFIG_DIR}/rules" "${CONFIG_DIR}/templates" "${CONFIG_DIR}/scripts" "${COMPAT_DIR}"
+copy_resources() {
+    local dest="$1"
+    mkdir -p "${dest}/skills" "${dest}/templates" "${dest}/rules"
+    cp -r "${SRC_DIR}/skills/"* "${dest}/skills/"
+    cp -r "${SRC_DIR}/templates/"* "${dest}/templates/"
+    cp -r "${SRC_DIR}/rules/"* "${dest}/rules/"
+}
+
+mkdir -p "${CONFIG_DIR}/scripts" "${COMPAT_DIR}"
 
 echo "[+] Copying skills, templates, rules, and scripts..."
-cp -r "${SRC_DIR}/skills/"* "${CONFIG_DIR}/skills/"
-cp -r "${SRC_DIR}/rules/"* "${CONFIG_DIR}/rules/"
-cp -r "${SRC_DIR}/templates/"* "${CONFIG_DIR}/templates/"
+copy_resources "${CONFIG_DIR}"
 cp -r "${SRC_DIR}/scripts/"* "${CONFIG_DIR}/scripts/"
 cp "${SRC_DIR}/hooks.json" "${CONFIG_DIR}/hooks.json"
 chmod +x "${CONFIG_DIR}/scripts/"*.sh
@@ -45,10 +51,7 @@ chmod +x "${CONFIG_DIR}/scripts/"*.sh
 # If installed as a global plugin, sync plugin copy as well
 if [ -d "${CONFIG_DIR}/plugins/agy-flow" ]; then
     echo "[+] Updating global plugin directory: ${CONFIG_DIR}/plugins/agy-flow"
-    mkdir -p "${CONFIG_DIR}/plugins/agy-flow/skills" "${CONFIG_DIR}/plugins/agy-flow/templates" "${CONFIG_DIR}/plugins/agy-flow/rules"
-    cp -r "${SRC_DIR}/skills/"* "${CONFIG_DIR}/plugins/agy-flow/skills/"
-    cp -r "${SRC_DIR}/templates/"* "${CONFIG_DIR}/plugins/agy-flow/templates/"
-    cp -r "${SRC_DIR}/rules/"* "${CONFIG_DIR}/plugins/agy-flow/rules/"
+    copy_resources "${CONFIG_DIR}/plugins/agy-flow"
 fi
 
 if [ -f "${CONFIG_DIR}/rules/GEMINI.md" ]; then
