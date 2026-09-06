@@ -64,7 +64,7 @@ curl -fsSL https://raw.githubusercontent.com/larya-dot-eu/agy-flow/main/install-
 
 Or install directly via Git (bypassing any CDN cache):
 ```bash
-git clone --depth 1 https://github.com/larya-dot-eu/agy-flow.git /tmp/agy-flow && /tmp/agy-flow/install-skills.sh && rm -rf /tmp/agy-flow
+TMP_DIR=$(mktemp -d /tmp/agy-flow-XXXXXX) && git clone --depth 1 https://github.com/larya-dot-eu/agy-flow.git $TMP_DIR && $TMP_DIR/install-skills.sh && rm -rf $TMP_DIR
 ```
 
 ---
