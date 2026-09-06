@@ -48,6 +48,13 @@ OUTPUT4=$(echo "$COMMIT_INPUT" | ./scripts/context-guard.sh --check-commit)
 echo "$OUTPUT4" | grep -q '"decision": "deny"' || { echo "Test 4 Failed! Output was: $OUTPUT4"; exit 1; }
 echo "Scenario 4 Passed: Git commit blocked on dirty mapped code."
 
+
+echo "Scenario 5: Malformed JSON payload during PreToolUse"
+MALFORMED_INPUT='{"toolCall":{"name":"run_command","args":{"CommandLine":"git commit'
+OUTPUT5=$(echo "$MALFORMED_INPUT" | ./scripts/context-guard.sh --check-commit)
+echo "$OUTPUT5" | grep -q '"decision": "allow"' || { echo "Test 5 Failed! Output was: $OUTPUT5"; exit 1; }
+echo "Scenario 5 Passed: Malformed JSON handled gracefully."
+
 # Cleanup
 rm -rf "$TEST_DIR"
 echo "All context guard tests passed successfully!"
