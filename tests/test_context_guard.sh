@@ -48,12 +48,22 @@ OUTPUT4=$(echo "$COMMIT_INPUT" | ./scripts/context-guard.sh --check-commit)
 echo "$OUTPUT4" | grep -q '"decision": "deny"' || { echo "Test 4 Failed! Output was: $OUTPUT4"; exit 1; }
 echo "Scenario 4 Passed: Git commit blocked on dirty mapped code."
 
-
 echo "Scenario 5: Malformed JSON payload during PreToolUse"
 MALFORMED_INPUT='{"toolCall":{"name":"run_command","args":{"CommandLine":"git commit'
 OUTPUT5=$(echo "$MALFORMED_INPUT" | ./scripts/context-guard.sh --check-commit)
 echo "$OUTPUT5" | grep -q '"decision": "allow"' || { echo "Test 5 Failed! Output was: $OUTPUT5"; exit 1; }
 echo "Scenario 5 Passed: Malformed JSON handled gracefully."
+
+echo "Scenario 6: Synchronized source and doc updates"
+rm -f src/api/handler.js docs/context/api.md
+touch src/api/handler.js
+touch docs/context/api.md
+OUTPUT6=$(./scripts/context-guard.sh --check-stop)
+if [ "$OUTPUT6" != "{}" ]; then
+  echo "Test 6 Failed! Output was: $OUTPUT6"
+  exit 1
+fi
+echo "Scenario 6 Passed: Synchronized updates allowed."
 
 # Cleanup
 rm -rf "$TEST_DIR"
