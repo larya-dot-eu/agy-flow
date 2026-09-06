@@ -49,7 +49,7 @@ curl -fsSL https://api.github.com/repos/larya-dot-eu/agy-flow/releases/latest 2>
 Download and execute the self-contained installer from GitHub to update `~/.gemini/config/`:
 
 ```bash
-git clone --depth 1 https://github.com/larya-dot-eu/agy-flow.git /tmp/agy-flow-update-$$ && /tmp/agy-flow-update-$$/install-skills.sh && rm -rf /tmp/agy-flow-update-$$
+TMP_DIR=$(mktemp -d) && git clone --depth 1 https://github.com/larya-dot-eu/agy-flow.git "$TMP_DIR" && "$TMP_DIR/install-skills.sh" && rm -rf "$TMP_DIR"
 ```
 
 ### Step 3: Verify Updated Installation
