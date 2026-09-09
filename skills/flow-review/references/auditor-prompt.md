@@ -26,7 +26,7 @@ You are an adversarial document auditor and principal systems architect. Your mi
 
 ### 3. Buildability & Task Granularity
 - Could an engineer with zero prior context execute this plan step-by-step without getting stuck?
-- Are tasks right-sized into bite-sized units (2–5 minutes per step)?
+- Are tasks right-sized into bite-sized units (under 10 minutes per step)?
 
 ### 4. Security, Concurrency & Rollback
 - Are input validation boundaries enforced?
