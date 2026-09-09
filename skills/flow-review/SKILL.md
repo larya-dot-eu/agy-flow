@@ -65,26 +65,24 @@ Auditors must strictly separate **Blockers** from **Advisory Recommendations**:
 
 ---
 
-## 2. The 5 Audit Dimensions
+## 2. The Comprehensive Adversarial Audit Dimensions
 
-The auditor audits against 5 core categories:
+The auditor audits the plan by attempting to break it structurally, mechanically, and architecturally:
 
-1. **Completeness & Zero Placeholders**:
-   - Zero `TODO`, `TBD`, or `"implement later"` statements in spec or plan.
-   - Every task step contains actual runnable code blocks and explicit test commands.
-2. **Spec-to-Plan Alignment & Traceability**:
-   - Every Acceptance Criterion (`AC-XX`) in the spec is covered by a corresponding Red test task in the plan.
-   - Zero orphan tasks in the plan (scope creep).
-3. **Buildability & Task Granularity**:
-   - Could an engineer with zero context follow this plan step-by-step without getting stuck?
-   - Tasks are right-sized (2–5 minutes per step).
-4. **Security, Concurrency & Blast Radius**:
-   - Boundary inputs validated, auth checks in place, zero credentials in fixtures.
-   - Database transactions, mutexes, idempotency keys, and rollback steps verified.
-5. **YAGNI Simplicity & Dead-Code Pruning**:
-   - **Single-Use Abstraction Check**: Are there generic wrappers, factories, or interfaces built for single-use logic? (Flag as Blocker).
-   - **Speculative Feature Check**: Are there unrequested configuration options, flags, or error branches for impossible states? (Flag as Blocker).
-   - **Orphaned Code & Imports Check**: Did proposed edits leave behind unused imports, functions, or dead files? (Require removal in plan).
+**Mechanical & Formatting Rigor:**
+1. **Completeness & Zero Placeholders**: Zero `TODO`, `TBD`, or `"implement later"`. Every task step must contain actual runnable code blocks and explicit test commands.
+2. **Spec-to-Plan Traceability**: Every Acceptance Criterion (`AC-XX`) must be covered by a corresponding test task. Zero orphan tasks (scope creep).
+3. **Buildability & Task Granularity**: Tasks must be right-sized (bite-sized tasks under 10 minutes) with clear context.
+4. **YAGNI Simplicity & Dead-Code Pruning**: Flag single-use abstractions, speculative config options, or orphaned code/imports as blockers.
+
+**Architectural & Security Rigor:**
+5. **Intermediate States & Dependency Graph**: Trace each step's intermediate state. Is the codebase consistent or broken between steps? What must already exist before each step can run?
+6. **Absence is not confirmation**: An empty grep, a missing file, or a silent log means "unverified," not "safe." Widen searches and read actual source definitions.
+7. **Re-attack the plan's own flagged risks**: Any claim marked "most likely wrong" or "verify on contact" is the first thing to break in this review.
+8. **Abuse-case pass (Access Control)**: Attack security. Can a user reach another user's records (IDOR)? Can a protected route be hit unauthenticated? Is any input trusted before server-side validation? Every allowed cell needs a plan step that enforces it.
+9. **Scale pass**: Take the Phase 3 numbers and ask what melts at peak ×10. Missing indexes? Unbounded tables? Per-user state in memory?
+10. **Reinvention-and-hardcoding pass**: Does any step write logic the codebase already has? Does it hardcode strings, colors, or thresholds?
+11. **Concurrency & Rollback**: Are database transactions, mutexes, and rollback steps verified?
 
 ---
 
@@ -96,7 +94,7 @@ To guarantee objectivity, the lead orchestrator dispatches an independent subage
 {
   "TypeName": "self",
   "Role": "Adversarial Plan Auditor",
-  "Prompt": "You are an adversarial document auditor and principal systems architect. Perform a calibrated, ruthless red-team audit of the implementation plan at docs/plans/YYYY-MM-DD-[feature]-plan.md against the specification at docs/specs/YYYY-MM-DD-[feature]-spec.md.\n\nAudit Dimensions:\n1. Completeness & Zero Placeholders (Scan for TODO, TBD, unwritten code blocks)\n2. Spec-to-Plan Traceability (1-to-1 AC-XX mapping, type consistency)\n3. Buildability & Task Granularity (2-5 min steps, no missing context)\n4. Security, Concurrency & Rollback Runbook\n5. YAGNI Simplicity & Dead-Code Audit (Flag single-use abstractions and speculative flexibility as BLOCKERS)\n\nCalibration Rule:\nONLY flag issues that would cause runtime failures, security holes, implementation deadlocks, spec divergence, or YAGNI bloat as BLOCKERS. Phrasing preferences are ADVISORY.\n\nOutput the standard Adversarial Review Scorecard with Status (APPROVED | REVISION REQUIRED)."
+  "Prompt": "You are an adversarial document auditor and principal systems architect. Switch from generation mode to review mode. Your goal is to break the plan at docs/plans/YYYY-MM-DD-[feature]-plan.md, not defend it.\n\nAudit Dimensions:\n1. Mechanical Completeness: Zero placeholders (TODO/TBD). Runnable code blocks only.\n2. Traceability: 1-to-1 AC-XX mapping. No orphan tasks.\n3. Buildability: Tasks under 10 min. No missing context.\n4. YAGNI & Dead Code: Flag single-use abstractions and orphaned imports.\n5. Intermediate States & Dependencies: Are states broken between steps? Is the dependency graph valid?\n6. Absence != Confirmation: Do not trust empty greps or missing files. Verify actual source.\n7. Re-attack Risks: Break the plan's flagged 'most likely wrong' claims first.\n8. Abuse-Case Pass: Attack access control (IDOR, auth bypass, missing validation).\n9. Scale Pass: Attack peak load (missing indexes, unbounded growth, in-memory state).\n10. Reinvention Pass: Flag duplicated logic and hardcoded values.\n11. Concurrency & Rollbacks: Validate transactions, mutexes, and rollback commands.\n\nCalibration Rule:\nONLY flag issues that would cause runtime failures, security holes, implementation deadlocks, spec divergence, or architectural decay as BLOCKERS. Phrasing preferences are ADVISORY.\n\nWrite the standard Adversarial Review Scorecard to docs/plans/.tmp/plan-review-[feature].md. Do NOT output the full text in chat; just announce completion and the final Status (APPROVED | REVISION REQUIRED)."
 }
 ```
 
@@ -125,23 +123,45 @@ To guarantee objectivity, the lead orchestrator dispatches an independent subage
 
 ### Blocking Issues (Require Resolution Before Implementation)
 - [Task X.Y / Spec Section Z]: [Specific blocking defect] — [Required Fix]
+- [Additional blockers as needed...]
 *(If none, state: "None. Zero blocking defects.")*
 
 ---
 
 ### Advisory Recommendations (Non-Blocking)
-- [Suggestion 1]
+- [Suggestion]
+- [Additional suggestions as needed...]
+*(If none, state: "None.")*
 
 ---
 
-### Decision & Next Phase Transition
+### Loop-Back Decision & Routing
+
+| Finding | Action |
+|---|---|
+| Surface fix — wrong step order, missing verification point | Return to Phase 4 and fix the plan |
+| Architectural issue — wrong interface, broken dependency, broken intermediate state | Return to Phase 3 and fix the spec |
+| Fundamental problem — wrong approach or wrong problem being solved | Return to Phase 2 and re-explore |
+
+**Rollback rule:** If more than one-third of all steps of the plan need reworking, do not patch. Restart from Phase 3.
+
 - **Decision**: [APPROVED / LOOP-BACK]
 - **Next Command**: `/flow-tdd` (or `/flow-plan` / `/flow-spec` / `/flow-brainstorm`)
 ```
 
 ---
 
-## 5. User Gate & Authorization
+## 5. Loop-Back Resolution Protocol (The Surgical Edit Law)
+
+If the scorecard returns `REVISION REQUIRED`, the Lead Orchestrator MUST resolve the blocking issues using the following strict protocol:
+1. **Read the Report**: Read the report at `docs/plans/.tmp/plan-review-[feature].md`.
+2. **Surgical Inline Edits**: Address the blocking issues one by one using surgical inline edits (e.g., using `replace_file_content` tools, targeted `sed` commands, or Python script replacements).
+3. **NO FULL FILE REWRITES**: You **MUST NOT** rewrite, overwrite, or regenerate the entire `plan.md` document in a single write operation. Full file rewrites waste tokens and risk accidentally undoing previously approved tasks.
+4. **Resubmit**: After all blockers are resolved via targeted edits, loop back to the Auditor.
+
+---
+
+## 6. User Gate & Authorization
 
 1. Present the completed Review Scorecard to the user.
 2. If approved, ask for final confirmation:

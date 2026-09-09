@@ -11,7 +11,7 @@
 
 ---
 
-## 1. 5 Adversarial Questions Assessment <!-- ANCHOR: PREFLIGHT_AUDIT -->
+## 1. Pre-Flight Architecture Audit <!-- ANCHOR: PREFLIGHT_AUDIT -->
 
 1. **Hidden Assumptions & Validation**: [Explicit findings regarding existing APIs, configs, or DB state]
 2. **Failure Modes & Defenses**: [Defensive patterns, timeout handling, concurrency boundaries]
@@ -47,7 +47,7 @@
 - **Consumes**: [Exact signatures/types imported from earlier tasks or stdlib, e.g. `UserSession(id: str)`]
 - **Produces**: [Exact function names, parameters, and return types exported, e.g. `validate_token(token: str) -> Result[UserSession, AuthError]`]
 
-- [ ] **Step 1: Write the failing test (Red)**
+- [ ] **Write the failing test (Red)**
 ```python
 # tests/unit/test_validator.py
 import pytest
@@ -58,11 +58,11 @@ def test_validate_token_expired_raises_error():
         validate_token("expired.jwt.token")
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [ ] **Run test to verify failure**
 Run: `pytest tests/unit/test_validator.py -v`
 Expected Output: `FAIL with ImportError or NameError: 'validate_token' is not defined`
 
-- [ ] **Step 3: Write minimal implementation (Green)**
+- [ ] **Write minimal implementation (Green)**
 ```python
 # src/domain/validator.py
 class AuthError(Exception):
@@ -74,11 +74,11 @@ def validate_token(token: str):
     return {"status": "valid"}
 ```
 
-- [ ] **Step 4: Run test to verify green**
+- [ ] **Run test to verify green**
 Run: `pytest tests/unit/test_validator.py -v`
 Expected Output: `1 passed`
 
-- [ ] **Step 5: Refactor & Commit**
+- [ ] **Refactor & Commit**
 ```bash
 git add tests/unit/test_validator.py src/domain/validator.py
 git commit -m "feat(auth): implement token expiration validator with tests"
