@@ -104,19 +104,44 @@ Plans **MUST** adhere to [`templates/plan.md.template`](../../templates/plan.md.
 
 ---
 
-## 6. Plan Self-Review Checklist (Mandatory Inline Audit)
+## 6. Plan Self-Review & Transition Checkpoint (Mandatory Inline Audit)
 
-Before saving and submitting to `/flow-review`, the agent must verify:
+Before saving and submitting to `/flow-review`, the agent must verify mechanical correctness:
 1. **Spec Coverage**: Is every single Acceptance Criterion (`AC-XX`) in the spec accounted for in a specific task?
 2. **Placeholder Scan**: Search the plan text for `TODO`, `TBD`, or missing code blocks.
 3. **Type & Signature Consistency**: Do function names and signatures defined in Task 1 match what is consumed in Task 3?
 4. **Task Right-Sizing**: Is every step executable in 2–5 minutes with clear pass/fail verification?
 
+After confirming mechanical formatting, run these five architectural questions against the plan. Answer each one with specific findings — not "yes":
+
+> 1. Is verification built in at each step, not just at the end?
+> 2. Are tasks and steps grouped by what is independently vs. dependently testable?
+> 3. Did you extract everything relevant from the codebase and the conversation — constraints, limitations, non-obvious edge cases?
+> 4. Are there external dependencies — APIs, file paths, database states, service availability — that the plan assumes exist but does not verify first?
+> 5. Which claims are most likely wrong — and did you verify each against the actual source? This includes an empty grep, a green suite that never exercises the changed path, a silent log, or anything the plan marked "most likely wrong" or "verify on contact".
+
+Fix any issues found before proceeding.
+
+**Exit gate:** All checks passed. All five questions answered with concrete findings. All issues resolved. User has approved the plan.
+
 ---
 
-## 7. Exit Gate & Handoff to `/flow-review`
+## 7. Output Format & Handoff to `/flow-review`
 
-1. Save the plan to `docs/plans/YYYY-MM-DD-[feature]-plan.md`.
-2. Announce readiness:
-   > *"Implementation plan authored and audited at [`docs/plans/YYYY-MM-DD-[feature]-plan.md`](docs/plans/). Submitting to [`/flow-review`](../flow-review/SKILL.md) for adversarial review."*
-3. Transition directly to **[`/flow-review`](../flow-review/SKILL.md)** (Phase 5).
+One required output, one optional companion — saved to `docs/plans/`:
+
+**1. Markdown plan (required):**
+`YYYY-MM-DD-[feature]-plan.md` — ordered steps with exit states and verification methods.
+
+**2. HTML visual companion (optional — generate only when the user asks for it, never unprompted):**
+`plan-[feature].html` — self-contained styled file generated from the same content. Must include:
+- Sticky sidebar navigation with phase links
+- Color-coded phases: exploration (purple), spec (blue), plan (green), review (red), TDD (orange), implementation (teal)
+- Each plan step as a card with: step number, action, exit state, verification method
+- The dependency graph rendered as an inline SVG diagram
+- Checkpoint questions rendered as a visible checklist the user ticks off before approving
+- External dependencies called out in a highlighted warning box
+
+Announce readiness:
+> *"Implementation plan authored and audited at [`docs/plans/YYYY-MM-DD-[feature]-plan.md`](docs/plans/). Submitting to [`/flow-review`](../flow-review/SKILL.md) for adversarial review."*
+Transition directly to **[`/flow-review`](../flow-review/SKILL.md)** (Phase 5).
