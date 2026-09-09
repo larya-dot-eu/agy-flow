@@ -1,0 +1,18 @@
+🎯 **What:** The testing gap regarding the missing error test for JSON parsing in `scripts/context-guard.sh` is now addressed.
+📊 **Coverage:** A new test scenario (`Scenario 5b`) has been added to `tests/test_context_guard.sh` which extracts the inline Python block from the bash script and executes it directly against a malformed JSON string, strictly asserting that the exception block correctly returns exactly `"false"`.
+✨ **Result:** Test coverage improved, giving confidence that the internal context-guard Python parsing logic natively handles arbitrary or invalid PreToolUse payloads cleanly without leaking exceptions into stdout.
+
+**Execution Gates**
+`node -v`: v22.22.1
+`python3 --version`: Python 3.12.13
+```
+bash tests/test_context_guard.sh
+...
+Scenario 5: Malformed JSON payload during PreToolUse
+Scenario 5 Passed: Malformed JSON handled gracefully.
+Scenario 5b: Python JSON parsing exception handling
+Scenario 5b Passed: Python JSON parser handles malformed payload safely.
+Scenario 6: Synchronized source and doc updates
+...
+All context guard tests passed successfully!
+```
