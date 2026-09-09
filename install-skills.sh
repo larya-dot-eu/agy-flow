@@ -34,10 +34,10 @@ echo "================================================================="
 
 copy_resources() {
     local dest="$1"
-    mkdir -p "${dest}/skills" "${dest}/templates" "${dest}/rules"
-    cp -r "${SRC_DIR}/skills/"* "${dest}/skills/"
-    cp -r "${SRC_DIR}/templates/"* "${dest}/templates/"
-    cp -r "${SRC_DIR}/rules/"* "${dest}/rules/"
+    for dir in skills templates rules; do
+        mkdir -p "${dest}/${dir}"
+        cp -r "${SRC_DIR}/${dir}/"* "${dest}/${dir}/"
+    done
 }
 
 mkdir -p "${CONFIG_DIR}/scripts" "${COMPAT_DIR}"
