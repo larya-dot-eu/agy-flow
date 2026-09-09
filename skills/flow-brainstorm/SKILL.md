@@ -130,7 +130,7 @@ Explicitly clarify or propose defaults for:
 
 ### Step 5: Understanding Lock (Hard Gate)
 Before proposing any design, pause and output:
-1. **Understanding Summary** (5–7 bullet points covering What, Why, Who, Constraints, Non-Goals)
+1. **Understanding Summary** (a concise list of bullet points covering What, Why, Who, Constraints, Non-Goals)
 2. **Explicit Assumptions List**
 3. **Open Questions** (if any remain)
 
