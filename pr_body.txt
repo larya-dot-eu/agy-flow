@@ -1,0 +1,13 @@
+🎯 **What:** The code health issue addressed
+Extracted a repetitive test assertion pattern in `tests/test_context_guard.sh` into a reusable `assert_output` helper function, significantly reducing boilerplate code.
+
+💡 **Why:** How this improves maintainability
+The codebase had multiple instances of the pattern `echo "$OUTPUT" | grep $FLAG "$PATTERN" || { echo "$ERROR_MSG"; e`+`xit 1; }`. Consolidating this into a helper function makes tests easier to read and simpler to write going forward.
+
+✅ **Verification:** How you confirmed the change is safe
+- Executed `bash tests/test_context_guard.sh` and confirmed all context guard tests pass successfully.
+- Manually reviewed the diff using `git diff` to ensure logic remains untouched and only boilerplate was modified.
+- Environment: GNU bash, version 5.2.21(1)
+
+✨ **Result:** The improvement achieved
+The test script is more readable, maintainable, and less prone to copy-paste errors when writing new test scenarios.
