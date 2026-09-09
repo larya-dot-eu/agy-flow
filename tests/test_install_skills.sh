@@ -115,6 +115,40 @@ if [ ! -f "${HOME}/.gemini/config/skills/dummy.sh" ]; then
 fi
 echo "Scenario 4 Passed: Remote execution handled successfully."
 
+
+echo "Scenario 5: Remote Execution git clone failure cleanup"
+rm -rf "$HOME"
+mkdir -p "$HOME"
+
+# Set up mock git that fails
+mkdir -p "$TEST_DIR/bin2"
+echo '#!/usr/bin/env bash' > "$TEST_DIR/bin2/git"
+echo 'if [[ "$1" == "clone" ]]; then' >> "$TEST_DIR/bin2/git"
+echo '    exit 1' >> "$TEST_DIR/bin2/git"
+echo 'fi' >> "$TEST_DIR/bin2/git"
+echo 'echo "Unexpected git command: $@"' >> "$TEST_DIR/bin2/git"
+echo 'exit 1' >> "$TEST_DIR/bin2/git"
+
+chmod +x "$TEST_DIR/bin2/git"
+export PATH="$TEST_DIR/bin2:$PATH"
+
+TMP_BEFORE=$(ls -d /tmp/agy-flow-install-* 2>/dev/null | wc -l || echo 0)
+
+# Run it expecting failure
+if cat ./install-skills.sh | bash > /dev/null 2>&1; then
+    echo "Test 5 Failed: Script should have failed but exited 0"
+    exit 1
+fi
+
+TMP_AFTER=$(ls -d /tmp/agy-flow-install-* 2>/dev/null | wc -l || echo 0)
+if [ "$TMP_BEFORE" != "$TMP_AFTER" ]; then
+    echo "Test 5 Failed: Temp directory was not cleaned up on git failure."
+    ls -d /tmp/agy-flow-install-*
+    rm -rf /tmp/agy-flow-install-*
+    exit 1
+fi
+echo "Scenario 5 Passed: Cleanup on failure works correctly."
+
 # Cleanup
 rm -rf "$TEST_DIR"
 echo "All install-skills tests passed successfully!"
