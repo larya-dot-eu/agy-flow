@@ -2,8 +2,8 @@
 name: flow-plan
 description: >-
   Phase 4 of the 10-phase engineering lifecycle: Plan Writing.
-  Performs the 5 Adversarial Questions check and produces actionable, test-backed implementation plans
-  at docs/plans/YYYY-MM-DD-[feature]-plan.md. Enforces bite-sized tasks (2-5 min), explicit code blocks,
+  Performs the Pre-Flight Architecture Audit and produces actionable, test-backed implementation plans
+  at docs/plans/YYYY-MM-DD-[feature]-plan.md. Enforces bite-sized tasks (under 10 minutes), explicit code blocks,
   and the absolute "No Placeholders" rule. Trigger with /flow-plan.
 risk: critical
 source: unified-superpowers
@@ -22,7 +22,7 @@ Translate approved specifications from [`/flow-spec`](../flow-spec/SKILL.md) int
                                        │
                                        ▼
   ┌──────────────────────────────────────────────────────────────────────────┐
-  │ 5 Adversarial Questions Pre-Flight Audit                                 │
+  │ Pre-Flight Architecture Audit                                            │
   │  1. Hidden Assumptions            4. Dependency & Ordering Deadlocks     │
   │  2. Failure Modes & Edge Cases    5. Observability & Debuggability       │
   │  3. Rollback & Blast Radius                                              │
@@ -35,7 +35,7 @@ Translate approved specifications from [`/flow-spec`](../flow-spec/SKILL.md) int
   │  - Standardized Section Anchors (<!-- SECTION: ... -->)                  │
   │  - Task Right-Sizing (Smallest unit carrying independent review gate)    │
   │  - Absolute "No Placeholders" Law (Actual code blocks, zero TBDs)        │
-  │  - Bite-Sized Atomic Tasks (2–5 min steps: Red -> Green -> Commit)       │
+  │  - Bite-Sized Atomic Tasks (under 10 minutes: Red -> Green -> Commit)    │
   │  - Exact Interface Contracts (Consumes & Produces signatures)            │
   │  - Acceptance Criteria Traceability Matrix                               │
   └────────────────────────────────────┬─────────────────────────────────────┘
@@ -58,12 +58,15 @@ The implementation plan must be authored to disk at docs/plans/YYYY-MM-DD-[featu
 When writing implementation plans, assume the downstream implementing engineer or subagent:
 1. **Has Zero Context**: Knows nothing about our repo tools, conventions, or problem domain.
 2. **Has Questionable Taste**: Will take shortcuts, skip edge cases, or write weak assertions if not given exact code and commands.
-3. **Needs Bite-Sized Steps**: Reasons best when each step takes **2–5 minutes** and modifies a single focused unit.
+3. **Needs Bite-Sized Steps**: Reasons best when each step takes **under 10 minutes** and modifies a single focused unit.
 4. **Executes in Isolation**: Sees only their assigned task; explicit `Consumes` and `Produces` signatures are strictly required.
 
 ---
 
-## 2. The 5 Adversarial Questions Pre-Flight Audit
+> [!IMPORTANT]
+> Do NOT artificially limit plans to 5 steps or tasks. Generate as many tasks as strictly necessary.
+
+## 2. The Pre-Flight Architecture Audit
 
 Before authoring tasks, systematically evaluate and document:
 1. **Hidden Assumptions**: What unvalidated assumptions are being made regarding existing APIs, dependencies, environment variables, or database state?
@@ -78,12 +81,12 @@ Before authoring tasks, systematically evaluate and document:
 
 - **Task Boundary**: A task is the smallest unit that carries its own test cycle and is worth a fresh reviewer's gate.
 - **Rule of Thumb**: Fold setup, configuration, scaffolding, and documentation steps into the task whose deliverable needs them; split only where a reviewer could meaningfully reject one task while approving its neighbor.
-- **Each Step is One Action (2–5 minutes)**:
-  - Step 1: Write the failing test (Red).
-  - Step 2: Run it to make sure it fails for the expected reason.
-  - Step 3: Implement the minimal code to make the test pass (Green).
-  - Step 4: Run the tests to confirm they pass.
-  - Step 5: Commit atomically.
+- **Each Step is One Action (under 10 minutes)**:
+  - Write the failing test (Red).
+  - Run it to make sure it fails for the expected reason.
+  - Implement the minimal code to make the test pass (Green).
+  - Run the tests to confirm they pass.
+  - Commit atomically.
 
 ---
 
@@ -110,9 +113,9 @@ Before saving and submitting to `/flow-review`, the agent must verify mechanical
 1. **Spec Coverage**: Is every single Acceptance Criterion (`AC-XX`) in the spec accounted for in a specific task?
 2. **Placeholder Scan**: Search the plan text for `TODO`, `TBD`, or missing code blocks.
 3. **Type & Signature Consistency**: Do function names and signatures defined in Task 1 match what is consumed in Task 3?
-4. **Task Right-Sizing**: Is every step executable in 2–5 minutes with clear pass/fail verification?
+4. **Task Right-Sizing**: Is every step executable in under 10 minutes with clear pass/fail verification?
 
-After confirming mechanical formatting, run these five architectural questions against the plan. Answer each one with specific findings — not "yes":
+After confirming mechanical formatting, run these architectural questions against the plan. Answer each one with specific findings — not "yes":
 
 > 1. Is verification built in at each step, not just at the end?
 > 2. Are tasks and steps grouped by what is independently vs. dependently testable?
@@ -122,7 +125,7 @@ After confirming mechanical formatting, run these five architectural questions a
 
 Fix any issues found before proceeding.
 
-**Exit gate:** All checks passed. All five questions answered with concrete findings. All issues resolved. User has approved the plan.
+**Exit gate:** All checks passed. All questions answered with concrete findings. All issues resolved. User has approved the plan.
 
 ---
 
