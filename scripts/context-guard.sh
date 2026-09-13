@@ -20,19 +20,8 @@ if [ "$MODE" = "--check-commit" ]; then
   # Check if payload specifies a git commit
   IS_COMMIT="false"
   if [ -n "$PAYLOAD" ]; then
-    IS_COMMIT=$(python3 -c '
-import sys, json
-try:
-    data = json.loads(sys.argv[1])
-    args = data.get("toolCall", {}).get("args", {})
-    cmd = str(args.get("CommandLine") or args.get("commandLine") or "")
-    if "git commit" in cmd or "git-commit" in cmd:
-        print("true")
-    else:
-        print("false")
-except Exception:
-    print("false")
-' "$PAYLOAD" 2>/dev/null || echo "false")
+    IS_COMMIT=$(echo "$PAYLOAD" | jq -r 'try (.toolCall.args | (.CommandLine // .commandLine // "") | if test("git commit|git-commit") then "true" else "false" end) catch "false"' 2>/dev/null || echo "false")
+
   fi
 
   if [ "$IS_COMMIT" != "true" ]; then
