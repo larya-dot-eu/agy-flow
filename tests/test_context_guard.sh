@@ -166,6 +166,23 @@ cd - >/dev/null
 rm -rf "$NON_GIT_DIR"
 echo "Scenario 11 Passed: Execution outside git repo allowed."
 
+echo "Scenario 12: Empty Context Routing Map"
+git rm -f .agents/AGENTS.md -q
+cat <<'EOF_GEMINI3' > GEMINI.md
+# Test Project
+## Some Other Heading
+- `/src/api/` -> docs/context/api.md
+EOF_GEMINI3
+git add GEMINI.md && git commit -m "add GEMINI.md without mapping" -q
+
+touch src/api_v4/handler.js
+OUTPUT15=$(./scripts/context-guard.sh --check-stop)
+if [ "$OUTPUT15" != "{}" ]; then
+  echo "Test 15 Failed! Output was: $OUTPUT15"
+  exit 1
+fi
+echo "Scenario 12 Passed: Empty context routing map allows gracefully."
+
 # Cleanup
 rm -rf "$TEST_DIR"
 echo "All context guard tests passed successfully!"
