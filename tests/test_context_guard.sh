@@ -149,6 +149,7 @@ OUTPUT12=$(./scripts/context-guard.sh --check-stop)
 echo "$OUTPUT12" | grep -q '"decision": "continue"' || { echo "Test 12 Failed! Fallback to .agents/AGENTS.md not respected. Output was: $OUTPUT12"; exit 1; }
 echo "Scenario 10 Passed: Fallback to .agents/AGENTS.md works."
 
+<<<<<<< HEAD
 
 echo "Scenario 11: Execution outside of a git repository"
 NON_GIT_DIR=$(mktemp -d)
@@ -182,6 +183,16 @@ if [ "$OUTPUT15" != "{}" ]; then
   exit 1
 fi
 echo "Scenario 12 Passed: Empty context routing map allows gracefully."
+
+echo "Scenario 13: Clean working tree triggers early allow exit"
+git add .
+git commit -m "clean tree" -q || true
+OUTPUT16=$(./scripts/context-guard.sh --check-stop)
+if [ "$OUTPUT16" != "{}" ]; then
+  echo "Test 16 Failed! Output was: $OUTPUT16"
+  exit 1
+fi
+echo "Scenario 13 Passed: Clean working tree allowed."
 
 # Cleanup
 rm -rf "$TEST_DIR"
