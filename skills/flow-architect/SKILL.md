@@ -83,7 +83,7 @@ Principal Software Architect & Distributed Systems Specialist for on-demand arch
 
 ## 4. Architectural Review Scorecard Template
 
-```markdown
+````markdown
 # Architectural Review: [System / Subsystem Name]
 
 - **Date**: YYYY-MM-DD
@@ -121,4 +121,4 @@ graph TD
 ### 4. Concrete Recommendations & Trade-Offs
 1. **Immediate Refactoring**: [Actionable steps with code/pattern examples]
 2. **Strategic Evolution**: [Longer-term architectural milestones]
-```
+````

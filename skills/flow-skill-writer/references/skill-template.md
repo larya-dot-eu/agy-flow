@@ -2,7 +2,7 @@
 
 Use this canonical structure when authoring a new `SKILL.md`:
 
-```markdown
+````markdown
 ---
 name: [skill-name-hyphenated]
 description: >-
@@ -50,4 +50,4 @@ source: workspace | global
 ## 4. Verification & Output Standards
 - **Verification Command**: [e.g. `pytest`, `npm test`, linter command]
 - **Deliverable Path**: `docs/...` or target source file.
-```
+````

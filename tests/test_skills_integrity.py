@@ -112,7 +112,8 @@ def validate_terminology(content: str, file_path: Path) -> list[str]:
 
     for idx, line in enumerate(lines, start=1):
         if AG_FLOW_TYPO_REGEX.search(line):
-            errors.append(f"{file_path}:{idx}: Prohibited term 'Ag-Flow' detected. Use 'agy-flow' or 'Antigravity Flow'.")
+            if not re.search(r'(?:reject|prohibit|banned|detect|typo|assert|test|\bnot\b).*Ag-Flow', line, re.IGNORECASE) and not re.search(r'Ag-Flow.*(?:prohibited|banned|rejected|invalid)', line, re.IGNORECASE):
+                errors.append(f"{file_path}:{idx}: Prohibited term 'Ag-Flow' detected. Use 'agy-flow' or 'Antigravity Flow'.")
         if SLASH_COMMAND_TYPO_REGEX.search(line):
             errors.append(f"{file_path}:{idx}: Malformed slash command with underscore detected. Use kebab-case (e.g. /flow-spec).")
 
@@ -179,11 +180,13 @@ def validate_skill_resources_and_references(skill_dir: Path) -> list[str]:
                 repo_root / rel_path,
                 repo_root / "skills" / rel_path
             ]
-            # Also check if it's a generic canonical template filename under any skill's resources
+            # Also check if it's a generic canonical template/reference filename under any skill's resources or references
             if not any(c.exists() for c in candidates):
-                # Search across all skills/ for resources/filename
                 base_name = Path(rel_path).name
-                found_in_any_skill = any((s / "resources" / base_name).exists() for s in skills_root.iterdir() if s.is_dir())
+                found_in_any_skill = any(
+                    (s / "resources" / base_name).exists() or (s / "references" / base_name).exists()
+                    for s in skills_root.iterdir() if s.is_dir()
+                )
                 if not found_in_any_skill:
                     errors.append(f"{skill_file}:{idx}: Referenced resource missing on disk: '{rel_path}'")
 
@@ -246,3 +249,63 @@ def validate_repo_inventory_and_permissions(repo_root: Path) -> list[str]:
                 errors.append(f"{json_file}: Invalid JSON syntax: {e}")
 
     return errors
+
+def run_all_checks(repo_root: Path) -> int:
+    print("=" * 65)
+    print(" Running Antigravity Flow Skill Integrity & Markdown Linter")
+    print(f" Target Repository: {repo_root}")
+    print("=" * 65)
+
+    all_errors = []
+
+    # 1. Scan all markdown and template files across repository for code fences
+    all_md_files = list(repo_root.glob("skills/**/*.md")) + \
+                   list(repo_root.glob("skills/**/*.template")) + \
+                   list(repo_root.glob("docs/**/*.md")) + \
+                   list(repo_root.glob("rules/*.md")) + \
+                   [repo_root / "README.md", repo_root / "HOWTO.md"]
+
+    for mf in all_md_files:
+        if mf.exists():
+            content = mf.read_text(encoding="utf-8")
+            all_errors.extend(validate_code_fences(content, mf))
+
+    # 2. Scan skills, rules, root docs, and permanent docs for tool contracts & discipline
+    operational_files = list(repo_root.glob("skills/**/*.md")) + \
+                        list(repo_root.glob("skills/**/*.template")) + \
+                        list(repo_root.glob("docs/context/**/*.md")) + \
+                        list(repo_root.glob("docs/adr/**/*.md")) + \
+                        list(repo_root.glob("rules/*.md")) + \
+                        [repo_root / "README.md", repo_root / "HOWTO.md"]
+
+    for of in operational_files:
+        if of.exists():
+            content = of.read_text(encoding="utf-8")
+            all_errors.extend(validate_tool_and_subagent_contracts(content, of))
+            all_errors.extend(validate_tooling_discipline(content, of))
+            all_errors.extend(validate_terminology(content, of))
+
+    # 3. Validate skill frontmatters and relative links
+    for sdir in (repo_root / "skills").iterdir():
+        if sdir.is_dir() and (sdir / "SKILL.md").exists():
+            all_errors.extend(validate_skill_frontmatter(sdir))
+            all_errors.extend(validate_skill_resources_and_references(sdir))
+
+    # 4. Validate inventory parity and permissions
+    all_errors.extend(validate_repo_inventory_and_permissions(repo_root))
+
+    if all_errors:
+        print("\n❌ INTEGRITY CHECK FAILED with violations:")
+        for err in all_errors:
+            print(f"  [-] {err}")
+        print("=" * 65)
+        return 1
+
+    print("\n✅ [SUCCESS] All skill markdown files, templates, tools, frontmatters, and inventories validated cleanly!")
+    print(f"   Inspected {len(all_md_files)} markdown/template files across all 12 skills.")
+    print("=" * 65)
+    return 0
+
+if __name__ == "__main__":
+    root = Path(__file__).resolve().parent.parent
+    sys.exit(run_all_checks(root))

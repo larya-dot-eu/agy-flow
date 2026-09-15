@@ -55,11 +55,11 @@ The master orchestrator governing the complete 10-phase engineering lifecycle, c
                               (Red-Green-Refactor)
                                        │
                                        ▼
-                                  Phase 07.5:
-                               /flow-code-review
-                             (resources/code-review)
-                                       │
-                                       ▼
+                                   Phase 07.5:
+                                /flow-code-review
+                          (references/reviewer-prompt.md)
+                                        │
+                                        ▼
                                   Phase 08-10:
                                  /flow-release
                         (Verify, Context Sync, Release)
