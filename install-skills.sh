@@ -10,6 +10,13 @@ SKILLS_DIR="${CONFIG_DIR}/skills"
 COMPAT_DIR="${HOME}/.gemini/antigravity"
 TEMP_DIR=""
 
+cleanup() {
+    if [ -n "${TEMP_DIR:-}" ] && [ -d "${TEMP_DIR:-}" ]; then
+        rm -rf "$TEMP_DIR"
+    fi
+}
+trap cleanup EXIT
+
 # Determine source directory (local vs remote curl execution)
 SRC_DIR=""
 if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]:-}" ]; then
@@ -61,10 +68,7 @@ fi
 ln -sfn "${SKILLS_DIR}" "${COMPAT_DIR}/skills"
 echo "[✓] Symlinked ${COMPAT_DIR}/skills -> ${SKILLS_DIR}"
 
-# Cleanup temporary clone if used
-if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
-    rm -rf "$TEMP_DIR"
-fi
+
 
 echo "================================================================="
 echo " Installed Skills Inventory in ${SKILLS_DIR}:"
