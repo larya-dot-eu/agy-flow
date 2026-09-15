@@ -180,7 +180,7 @@ class TestInteractiveWizard(unittest.TestCase):
             self.assertFalse((Path(tmpdir) / ".git").exists())
 
     @patch("sys.stdin.isatty", return_value=True)
-    @patch("builtins.input", side_effect=["n", "Kotlin, Java", "gradle test"])
+    @patch("builtins.input", side_effect=["n", "Kotlin, Java", "gradle test", "y"])
     def test_interactive_stack_rejection_prompts_custom_inputs(self, mock_input, mock_isatty):
         with tempfile.TemporaryDirectory() as tmpdir:
             exit_code = run_flow_init(["--dir", tmpdir, "--no-git"])
@@ -188,6 +188,19 @@ class TestInteractiveWizard(unittest.TestCase):
             gemini_content = (Path(tmpdir) / "GEMINI.md").read_text(encoding="utf-8")
             self.assertIn("Kotlin, Java", gemini_content)
             self.assertIn("gradle test", gemini_content)
+
+    @patch("sys.stdin.isatty", return_value=True)
+    @patch("builtins.input", side_effect=["y", "n"])
+    def test_interactive_subsystem_rejection_skips_context_docs(self, mock_input, mock_isatty):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "src").mkdir()
+            (root / "src" / "mod_a").mkdir()
+            exit_code = run_flow_init(["--dir", tmpdir, "--no-git"])
+            self.assertEqual(exit_code, 0)
+            self.assertFalse((root / "docs" / "context" / "src-mod_a.md").exists())
+            gemini_content = (root / "GEMINI.md").read_text(encoding="utf-8")
+            self.assertIn("No custom subsystem routing mapped", gemini_content)
 
 if __name__ == "__main__":
     unittest.main()

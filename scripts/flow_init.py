@@ -216,10 +216,13 @@ def render_gemini_md(project_name: str, stack_info: dict, subsystems: list[tuple
     test_cmd = stack_info.get("test_cmd", "pytest")
     dev_cmd = stack_info.get("dev_cmd", "# Start development server")
 
-    routing_rows = "\n".join(
-        f"| `{pattern}` | [`{doc}`]({doc}) | {desc} |"
-        for pattern, doc, desc in subsystems
-    )
+    if subsystems:
+        routing_rows = "\n".join(
+            f"| `{pattern}` | [`{doc}`]({doc}) | {desc} |"
+            for pattern, doc, desc in subsystems
+        )
+    else:
+        routing_rows = "| *(unmapped)* | `docs/context/` | No custom subsystem routing mapped |"
 
     return f"""# {project_name} - Workspace Directives
 
@@ -410,6 +413,14 @@ def run_flow_init(argv: list[str] | None = None) -> int:
 
     # 3. Topology probe
     subsystems = discover_subsystems(workspace_root)
+    if is_interactive:
+        try:
+            prompt_sub = input(f"Discovered {len(subsystems)} subsystems for Context Routing. Scaffold context modules? [Y/n]: ").strip().lower()
+            if prompt_sub in {"n", "no"}:
+                subsystems = []
+        except (EOFError, KeyboardInterrupt):
+            pass
+
     print(f"  [+] Discovered {len(subsystems)} subsystem boundaries for Context Routing")
 
     # 4. Scaffolding
