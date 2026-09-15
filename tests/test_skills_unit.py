@@ -4,10 +4,13 @@ import tempfile
 from pathlib import Path
 from tests.test_skills_integrity import (
     validate_code_fences,
+    validate_section_anchors,
     validate_tool_and_subagent_contracts,
     validate_tooling_discipline,
     validate_terminology,
-    validate_skill_frontmatter
+    validate_skill_frontmatter,
+    validate_skill_resources_and_references,
+    validate_repo_inventory_and_permissions
 )
 
 class TestCodeFenceValidator(unittest.TestCase):
@@ -28,12 +31,26 @@ class TestCodeFenceValidator(unittest.TestCase):
         self.assertEqual(errors, [])
 
     def test_nested_fence_without_extra_backticks_fails(self):
-        # 3-backtick outer markdown fence with 3-backtick inner bash fence causes premature close
+        # 3-backtick outer markdown fence with 3-backtick inner bash fence causes collision
         content = "```markdown\nSome text\n```bash\necho hi\n```\nMore text\n```"
         errors = validate_code_fences(content, Path("test.md"))
-        self.assertTrue(any("Prematurely closed or colliding" in e or "Unclosed" in e for e in errors))
+        self.assertTrue(any("colliding" in e or "Unclosed" in e for e in errors))
 
-from tests.test_skills_integrity import validate_code_fences, validate_tool_and_subagent_contracts
+class TestSectionAnchorValidator(unittest.TestCase):
+    def test_valid_unique_anchors_pass(self):
+        content = "# Section 1 <!-- ANCHOR: SEC_ONE -->\n# Section 2 <!-- ANCHOR: SEC_TWO -->"
+        errors = validate_section_anchors(content, Path("test.md"))
+        self.assertEqual(errors, [])
+
+    def test_invalid_anchor_naming_fails(self):
+        content = "# Section <!-- ANCHOR: invalid-lowercase -->"
+        errors = validate_section_anchors(content, Path("test.md"))
+        self.assertTrue(any("does not conform to [A-Z0-9_]+" in e for e in errors))
+
+    def test_duplicate_anchor_fails(self):
+        content = "# Section A <!-- ANCHOR: SEC_A -->\n# Section B <!-- ANCHOR: SEC_A -->"
+        errors = validate_section_anchors(content, Path("test.md"))
+        self.assertTrue(any("Duplicate section anchor" in e for e in errors))
 
 class TestToolAndSubagentValidator(unittest.TestCase):
     def test_valid_tool_and_subagent_pass(self):
@@ -50,8 +67,6 @@ class TestToolAndSubagentValidator(unittest.TestCase):
         content = 'Call the `edit_file` tool to make changes.'
         errors = validate_tool_and_subagent_contracts(content, Path("skills/test/SKILL.md"))
         self.assertTrue(any("Deprecated" in e or "Invalid" in e for e in errors))
-
-from tests.test_skills_integrity import validate_code_fences, validate_tool_and_subagent_contracts, validate_tooling_discipline
 
 class TestToolingDisciplineValidator(unittest.TestCase):
     def test_clean_content_passes(self):
@@ -111,8 +126,6 @@ class TestFrontmatterValidator(unittest.TestCase):
             errors = validate_skill_frontmatter(skill_dir)
             self.assertTrue(any("does not match directory" in e for e in errors))
 
-from tests.test_skills_integrity import validate_skill_resources_and_references
-
 class TestResourceAndReferenceValidator(unittest.TestCase):
     def test_existing_resource_link_passes(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -147,16 +160,6 @@ class TestResourceAndReferenceValidator(unittest.TestCase):
             (skill_dir / "SKILL.md").write_text("See `resources/missing.template` for scaffold.")
             errors = validate_skill_resources_and_references(skill_dir)
             self.assertTrue(any("Referenced resource missing" in e for e in errors))
-
-from tests.test_skills_integrity import (
-    validate_code_fences,
-    validate_tool_and_subagent_contracts,
-    validate_tooling_discipline,
-    validate_terminology,
-    validate_skill_frontmatter,
-    validate_skill_resources_and_references,
-    validate_repo_inventory_and_permissions
-)
 
 class TestInventoryAndPermissionsValidator(unittest.TestCase):
     def test_repo_inventory_matches_12_skills(self):

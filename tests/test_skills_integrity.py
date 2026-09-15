@@ -47,6 +47,28 @@ def validate_code_fences(content: str, file_path: Path) -> list[str]:
 
     return errors
 
+HEADING_ANCHOR_REGEX = re.compile(r'^#+\s+.*<!--\s*ANCHOR:\s*([^\s>]+)\s*-->')
+VALID_ANCHOR_ID_REGEX = re.compile(r'^[A-Z0-9_]+$')
+
+def validate_section_anchors(content: str, file_path: Path) -> list[str]:
+    errors = []
+    lines = content.splitlines()
+    seen_anchors = {}
+
+    for idx, line in enumerate(lines, start=1):
+        match = HEADING_ANCHOR_REGEX.match(line.strip())
+        if match:
+            anchor_id = match.group(1)
+            if not VALID_ANCHOR_ID_REGEX.match(anchor_id):
+                errors.append(f"{file_path}:{idx}: Section anchor '{anchor_id}' does not conform to [A-Z0-9_]+")
+            if anchor_id in seen_anchors:
+                first_line = seen_anchors[anchor_id]
+                errors.append(f"{file_path}:{idx}: Duplicate section anchor '{anchor_id}' (first seen at line {first_line})")
+            else:
+                seen_anchors[anchor_id] = idx
+
+    return errors
+
 ANTIGRAVITY_TOOLS = {
     "view_file", "write_to_file", "replace_file_content", "run_command",
     "invoke_subagent", "manage_task", "define_subagent", "manage_subagents",
@@ -269,6 +291,7 @@ def run_all_checks(repo_root: Path) -> int:
         if mf.exists():
             content = mf.read_text(encoding="utf-8")
             all_errors.extend(validate_code_fences(content, mf))
+            all_errors.extend(validate_section_anchors(content, mf))
 
     # 2. Scan skills, rules, root docs, and permanent docs for tool contracts & discipline
     operational_files = list(repo_root.glob("skills/**/*.md")) + \
