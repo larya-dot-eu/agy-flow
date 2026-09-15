@@ -1,9 +1,11 @@
+import argparse
 import datetime
 import os
 import sys
 import json
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 DEFAULT_GITIGNORE = """# agy-flow local artifacts
@@ -282,4 +284,87 @@ def scaffold_context_and_adr(workspace_root: Path, subsystems: list[tuple[str, s
         created.append(adr_readme)
 
     return created
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Universal /flow-init Bootstrap & Project Onboarding Suite")
+    parser.add_argument("-d", "--dir", default=".", help="Target workspace root directory")
+    parser.add_argument("-y", "--yes", action="store_true", help="Non-interactive execution with defaults")
+    parser.add_argument("--name", default=None, help="Project name override")
+    parser.add_argument("--git-init", action="store_true", help="Explicitly enable git init in non-interactive mode")
+    parser.add_argument("--no-git", action="store_true", help="Skip git detection and initialization")
+    parser.add_argument("-f", "--force", action="store_true", help="Overwrite existing GEMINI.md and scaffolds")
+    return parser.parse_args(argv)
+
+def run_flow_init(argv: list[str] | None = None) -> int:
+    start_time = time.time()
+    args = parse_args(argv)
+    workspace_root = Path(args.dir).resolve()
+
+    if not workspace_root.exists():
+        print(f"❌ Error: Workspace directory '{workspace_root}' does not exist.")
+        return 1
+
+    project_name = args.name or workspace_root.name
+
+    print("=" * 65)
+    print(" 🚀 Initializing Antigravity Project Memory (/flow-init)")
+    print(f" Target: {workspace_root}")
+    print("=" * 65)
+
+    # 1. Git probe
+    allow_git = args.git_init
+    if not args.no_git and not (workspace_root / ".git").exists() and not args.yes:
+        try:
+            ans = input("No git repository detected. Initialize git in this directory? (y/N): ").strip().lower()
+            if ans in {"y", "yes"}:
+                allow_git = True
+        except EOFError:
+            pass
+
+    git_info = inspect_git_environment(workspace_root, allow_git_init=allow_git, skip_git=args.no_git)
+    if git_info["git_initialized"]:
+        print("  [+] Initialized git repository and starter .gitignore")
+    elif git_info["is_git_repo"]:
+        print("  [+] Git repository detected")
+
+    if git_info["user_name"] and git_info["user_email"]:
+        print(f"  [+] Git identity: {git_info['user_name']} <{git_info['user_email']}>")
+    elif git_info["is_git_repo"]:
+        print("  [!] Notice: git user.name / user.email not configured locally")
+
+    if git_info["gh_auth"]:
+        print(f"  [+] GitHub CLI: {git_info['gh_auth']}")
+
+    # 2. Stack probe
+    stack_info = detect_project_stack(workspace_root)
+    print(f"  [+] Detected Stack: {', '.join(stack_info['languages'])}")
+    print(f"  [+] Discovered Test Command: {stack_info['test_cmd']}")
+
+    # 3. Topology probe
+    subsystems = discover_subsystems(workspace_root)
+    print(f"  [+] Discovered {len(subsystems)} subsystem boundaries for Context Routing")
+
+    # 4. Scaffolding
+    try:
+        gemini_path, agents_path = generate_gemini_and_agents_md(
+            workspace_root, project_name, stack_info, subsystems, force=args.force
+        )
+        print(f"  [+] Generated {gemini_path.name}")
+        print(f"  [+] Created {agents_path.name} (symlink -> GEMINI.md)")
+    except FileExistsError as e:
+        print(f"  [!] Notice: {e}")
+
+    scaffolded = scaffold_context_and_adr(workspace_root, subsystems, force=args.force)
+    for p in scaffolded:
+        print(f"  [+] Scaffolded {p.relative_to(workspace_root)}")
+
+    elapsed_ms = (time.time() - start_time) * 1000
+    print("=" * 65)
+    print(f"✅ [SUCCESS] Antigravity project memory initialized in {elapsed_ms:.1f}ms (SLA: <= 200ms)")
+    print("=" * 65)
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(run_flow_init())
+
 

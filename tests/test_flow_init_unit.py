@@ -10,6 +10,7 @@ from scripts.flow_init import (
     discover_subsystems,
     generate_gemini_and_agents_md,
     scaffold_context_and_adr,
+    run_flow_init,
 )
 
 class TestGitEnvironmentInspector(unittest.TestCase):
@@ -95,6 +96,14 @@ class TestContextAndAdrScaffolder(unittest.TestCase):
             created = scaffold_context_and_adr(root, subsystems, force=True)
             self.assertTrue((root / "docs" / "context" / "src-auth.md").exists())
             self.assertTrue((root / "docs" / "adr" / "README.md").exists())
+
+class TestFlowInitCLI(unittest.TestCase):
+    def test_run_flow_init_headless(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            exit_code = run_flow_init(["--dir", tmpdir, "--yes", "--name", "cli-test", "--no-git"])
+            self.assertEqual(exit_code, 0)
+            self.assertTrue((Path(tmpdir) / "GEMINI.md").exists())
+            self.assertTrue((Path(tmpdir) / "AGENTS.md").exists())
 
 if __name__ == "__main__":
     unittest.main()
