@@ -122,9 +122,9 @@ def detect_project_stack(workspace_root: Path) -> dict:
     dev_cmd = None
 
     # Python check
-    if any((workspace_root / f).exists() for f in ["pyproject.toml", "setup.py", "requirements.txt", "Pipfile", "poetry.lock", "uv.lock"]):
+    if any((workspace_root / f).exists() for f in ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile", "poetry.lock", "uv.lock"]):
         languages.append("Python")
-        if (workspace_root / "pyproject.toml").exists() or (workspace_root / "pytest.ini").exists():
+        if (workspace_root / "pyproject.toml").exists() or (workspace_root / "pytest.ini").exists() or (workspace_root / "setup.cfg").exists():
             test_cmd = "pytest"
         else:
             test_cmd = "python3 -m unittest discover tests"
@@ -163,9 +163,13 @@ def detect_project_stack(workspace_root: Path) -> dict:
     if any((workspace_root / f).exists() for f in ["Dockerfile", "docker-compose.yml", "compose.yaml"]):
         build_tools.append("Docker")
 
-    # Makefile check
+    # Makefile, Taskfile & Justfile check
     if (workspace_root / "Makefile").exists():
         build_tools.append("Make")
+    if (workspace_root / "Taskfile.yml").exists() or (workspace_root / "Taskfile.yaml").exists():
+        build_tools.append("Taskfile")
+    if (workspace_root / "Justfile").exists() or (workspace_root / "justfile").exists():
+        build_tools.append("Just")
 
     if not languages:
         languages.append("Generic / Markdown")
@@ -248,24 +252,24 @@ def render_gemini_md(project_name: str, stack_info: dict, subsystems: list[tuple
 
 def generate_gemini_and_agents_md(workspace_root: Path, project_name: str, stack_info: dict, subsystems: list[tuple[str, str, str]], force: bool = False) -> tuple[Path, Path]:
     gemini_path = workspace_root / "GEMINI.md"
-    if gemini_path.exists() and not force:
-        raise FileExistsError(f"{gemini_path} already exists. Pass --force to overwrite.")
-
-    content = render_gemini_md(project_name, stack_info, subsystems)
-    gemini_path.write_text(content, encoding="utf-8")
+    if not gemini_path.exists() or force:
+        content = render_gemini_md(project_name, stack_info, subsystems)
+        gemini_path.write_text(content, encoding="utf-8")
 
     agents_path = workspace_root / "AGENTS.md"
     if agents_path.exists() or agents_path.is_symlink():
         if force:
             if agents_path.is_symlink() or agents_path.is_file():
                 agents_path.unlink()
-        else:
-            return gemini_path, agents_path
-
-    try:
-        agents_path.symlink_to("GEMINI.md")
-    except Exception:
-        shutil.copyfile(gemini_path, agents_path)
+            try:
+                agents_path.symlink_to("GEMINI.md")
+            except Exception:
+                shutil.copyfile(gemini_path, agents_path)
+    else:
+        try:
+            agents_path.symlink_to("GEMINI.md")
+        except Exception:
+            shutil.copyfile(gemini_path, agents_path)
 
     return gemini_path, agents_path
 
@@ -391,14 +395,22 @@ def run_flow_init(argv: list[str] | None = None) -> int:
     print(f"  [+] Discovered {len(subsystems)} subsystem boundaries for Context Routing")
 
     # 4. Scaffolding
-    try:
-        gemini_path, agents_path = generate_gemini_and_agents_md(
-            workspace_root, project_name, stack_info, subsystems, force=args.force
-        )
+    gemini_existed = (workspace_root / "GEMINI.md").exists()
+    agents_existed = (workspace_root / "AGENTS.md").exists() or (workspace_root / "AGENTS.md").is_symlink()
+
+    gemini_path, agents_path = generate_gemini_and_agents_md(
+        workspace_root, project_name, stack_info, subsystems, force=args.force
+    )
+
+    if not gemini_existed or args.force:
         print(f"  [+] Generated {gemini_path.name}")
+    else:
+        print(f"  [*] Preserved existing {gemini_path.name}")
+
+    if not agents_existed or args.force:
         print(f"  [+] Created {agents_path.name} (symlink -> GEMINI.md)")
-    except FileExistsError as e:
-        print(f"  [!] Notice: {e}")
+    else:
+        print(f"  [*] Preserved existing {agents_path.name}")
 
     scaffolded = scaffold_context_and_adr(workspace_root, subsystems, force=args.force)
     for p in scaffolded:
