@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from scripts.flow_init import (
     inspect_git_environment,
@@ -160,6 +161,23 @@ class TestFlowInitCLI(unittest.TestCase):
             self.assertEqual(exit_code, 0)
             self.assertNotEqual(gemini.read_text(encoding="utf-8"), "OLD CONTENT")
             self.assertIn("# force-test", gemini.read_text(encoding="utf-8"))
+
+class TestInteractiveWizard(unittest.TestCase):
+    @patch("sys.stdin.isatty", return_value=True)
+    @patch("builtins.input", side_effect=["", "y", "y"])
+    def test_interactive_git_prompt_defaults_to_yes(self, mock_input, mock_isatty):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            exit_code = run_flow_init(["--dir", tmpdir])
+            self.assertEqual(exit_code, 0)
+            self.assertTrue((Path(tmpdir) / ".git").exists())
+            self.assertTrue((Path(tmpdir) / ".gitignore").exists())
+
+    @patch("sys.stdin.isatty", return_value=False)
+    def test_non_tty_skips_git_prompt_without_flags(self, mock_isatty):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            exit_code = run_flow_init(["--dir", tmpdir])
+            self.assertEqual(exit_code, 0)
+            self.assertFalse((Path(tmpdir) / ".git").exists())
 
 if __name__ == "__main__":
     unittest.main()

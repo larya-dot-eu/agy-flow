@@ -361,14 +361,16 @@ def run_flow_init(argv: list[str] | None = None) -> int:
     print(f" Target: {workspace_root}")
     print("=" * 65)
 
+    is_interactive = sys.stdin.isatty() and not args.yes
+
     # 1. Git probe
     allow_git = args.git_init
-    if not args.no_git and not (workspace_root / ".git").exists() and not args.yes:
+    if not args.git_init and not args.no_git and not (workspace_root / ".git").exists() and is_interactive:
         try:
-            ans = input("No git repository detected. Initialize git in this directory? (y/N): ").strip().lower()
-            if ans in {"y", "yes"}:
+            ans = input("No git repository detected. Initialize git? [Y/n]: ").strip().lower()
+            if ans in {"", "y", "yes"}:
                 allow_git = True
-        except EOFError:
+        except (EOFError, KeyboardInterrupt):
             pass
 
     git_info = inspect_git_environment(workspace_root, allow_git_init=allow_git, skip_git=args.no_git)
