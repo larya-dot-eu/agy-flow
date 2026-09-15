@@ -112,6 +112,7 @@ Before taking any code modification action or proposing unvetted solutions:
    - Post-implementation & Release $\rightarrow$ `/flow-release`
    - Distributed architecture $\rightarrow$ `/flow-architect`
    - Architectural decisions $\rightarrow$ `/flow-adr`
+   - Universal project init / Bootstrap $\rightarrow$ `flow-init` (`/flow-init`)
    - Authoring/testing skills $\rightarrow$ `/flow-skill-writer`
    - In-chat version updates $\rightarrow$ `/flow-version-update`
 2. **Announce Skill Activation**: Explicitly state: `"Activating /flow-[phase] to [purpose]..."`

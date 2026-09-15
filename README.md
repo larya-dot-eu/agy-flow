@@ -58,7 +58,7 @@ graph TD
 Choose the installation method that best fits your workflow:
 
 ### Option 1: 1-Command Universal Installer (Recommended)
-Deploys all 12 skills, canonical templates, deterministic lifecycle hooks, and prime directives directly into `~/.gemini/config/`:
+Deploys all 13 skills, canonical templates, deterministic lifecycle hooks, and prime directives directly into `~/.gemini/config/`:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/larya-dot-eu/agy-flow/main/install-skills.sh | bash
@@ -134,6 +134,7 @@ To prevent documentation drift and agent amnesia with mathematical certainty:
 | **`/flow-release`** | Phase 08–10: Verification & Release | Release report & PR summary | **Full suite verification**, Diff-to-Context sync, `docs/adr/` sync, SemVer changelog |
 | **`/flow-architect`** | Distributed Architecture Specialist | Architectural Scorecards & Mermaid Models | Clean/Hexagonal architecture, DDD bounded contexts, Sagas, CQRS |
 | **`/flow-adr`** | Architecture Decision Records | `docs/adr/NNNN-[title].md` & `README.md` | Standard MADR, Y-Statement & RFC formats, lifecycle tracking |
+| **`/flow-init`** | Universal Project Bootstrap & Onboarding | `GEMINI.md`, `AGENTS.md`, `docs/context/` | Non-destructive multi-stack discovery, git probe, $\le 200\text{ms}$ SLA |
 | **`/flow-skill-writer`** | Meta-Skill: Skill Authoring & Testing | Tested `SKILL.md` documents | **Test-Driven Documentation (TDD)** using subagent pressure testing |
 | **`/flow-version-update`** | Updater: In-Chat Version Upgrades | Automated suite & template sync | **Pulls latest GitHub release**, updates `~/.gemini/config/` |
 

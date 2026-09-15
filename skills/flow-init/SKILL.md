@@ -51,9 +51,9 @@ Never overwrite existing `GEMINI.md` or living context modules without explicit 
 ## 2. Core Workflow & Step-by-Step Instructions
 
 1. **Step 1 (Run Initialization Engine)**:
-   Execute `scripts/flow_init.py` on the target workspace:
+   Execute `scripts/flow-init.sh` (or `python3 scripts/flow-init.py`) on the target workspace:
    ```bash
-   python3 scripts/flow_init.py --dir .
+   bash scripts/flow-init.sh --dir .
    ```
 2. **Step 2 (Inspect Generated Artifacts)**:
    Verify the creation of:

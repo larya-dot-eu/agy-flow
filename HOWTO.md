@@ -140,6 +140,7 @@ graph TD
 | **`/flow-release`** | When verifying, syncing living documentation, and releasing. | Release report + synchronized `docs/context/`. |
 | **`/flow-architect`** | When designing distributed systems, CQRS, Sagas, or Clean Architecture. | Component topology diagrams & DDD boundary scorecards. |
 | **`/flow-adr`** | When choosing databases, auth providers, brokers, or frameworks. | `docs/adr/NNNN-[title].md` & master index `docs/adr/README.md`. |
+| **`/flow-init`** | When initializing Antigravity project memory & bootstrapping a repo. | `GEMINI.md`, `AGENTS.md`, and `docs/context/` scaffolding. |
 | **`/flow-skill-writer`** | When authoring or editing custom Antigravity skills. | Pressure-tested `SKILL.md` files. |
 | **`/flow-version-update`**| When updating `agy-flow` to the latest GitHub version. | Automated in-chat suite update. |
 
