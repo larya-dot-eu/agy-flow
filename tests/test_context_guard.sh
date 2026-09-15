@@ -54,6 +54,15 @@ OUTPUT5=$(echo "$MALFORMED_INPUT" | ./scripts/context-guard.sh --check-commit)
 echo "$OUTPUT5" | grep -q '"decision": "allow"' || { echo "Test 5 Failed! Output was: $OUTPUT5"; exit 1; }
 echo "Scenario 5 Passed: Malformed JSON handled gracefully."
 
+echo "Scenario 5b: Python JSON parsing exception handling"
+PYTHON_CODE=$(awk '/IS_COMMIT=\$\(python3 -c '\''/{flag=1; next} /'\'' "\$PAYLOAD"/{flag=0} flag' scripts/context-guard.sh)
+OUTPUT5B=$(python3 -c "$PYTHON_CODE" '{"malformed": "json"' 2>/dev/null)
+if [ "$OUTPUT5B" != "false" ]; then
+  echo "Test 5b Failed! Python exception block did not return 'false'. Output was: $OUTPUT5B"
+  exit 1
+fi
+echo "Scenario 5b Passed: Python JSON parser handles malformed payload safely."
+
 echo "Scenario 6: Synchronized source and doc updates"
 rm -f src/api/handler.js docs/context/api.md
 touch src/api/handler.js
