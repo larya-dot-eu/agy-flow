@@ -62,6 +62,33 @@ class TestStackDetector(unittest.TestCase):
             self.assertIn("Rust", stack["languages"])
             self.assertEqual(stack["test_cmd"], "cargo test")
 
+    def test_detect_go_module(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "go.mod").write_text("module example.com/test\n\ngo 1.20\n", encoding="utf-8")
+            stack = detect_project_stack(root)
+            self.assertIn("Go", stack["languages"])
+            self.assertEqual(stack["test_cmd"], "go test ./...")
+
+    def test_detect_docker_taskfile_and_just(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "Dockerfile").write_text("FROM alpine\n", encoding="utf-8")
+            (root / "Taskfile.yml").write_text("version: '3'\n", encoding="utf-8")
+            (root / "Justfile").write_text("default:\n  @echo hi\n", encoding="utf-8")
+            stack = detect_project_stack(root)
+            self.assertIn("Docker", stack["build_tools"])
+            self.assertIn("Taskfile", stack["build_tools"])
+            self.assertIn("Just", stack["build_tools"])
+
+    def test_detect_python_setup_cfg(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "setup.cfg").write_text("[metadata]\nname = mypkg\n", encoding="utf-8")
+            stack = detect_project_stack(root)
+            self.assertIn("Python", stack["languages"])
+            self.assertEqual(stack["test_cmd"], "pytest")
+
 class TestTopologyDetector(unittest.TestCase):
     def test_discover_standard_subsystems(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -124,6 +151,15 @@ class TestFlowInitCLI(unittest.TestCase):
             self.assertEqual(exit_code, 0)
             self.assertEqual(gemini.read_text(encoding="utf-8"), "CUSTOM GEMINI")
             self.assertEqual(agents.read_text(encoding="utf-8"), "CUSTOM AGENTS")
+
+    def test_run_flow_init_force_overwrites(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            gemini = Path(tmpdir) / "GEMINI.md"
+            gemini.write_text("OLD CONTENT", encoding="utf-8")
+            exit_code = run_flow_init(["--dir", tmpdir, "--yes", "--name", "force-test", "--no-git", "--force"])
+            self.assertEqual(exit_code, 0)
+            self.assertNotEqual(gemini.read_text(encoding="utf-8"), "OLD CONTENT")
+            self.assertIn("# force-test", gemini.read_text(encoding="utf-8"))
 
 if __name__ == "__main__":
     unittest.main()
