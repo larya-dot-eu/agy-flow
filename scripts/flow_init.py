@@ -1,4 +1,4 @@
-# scripts/flow_init.py
+import datetime
 import os
 import sys
 import json
@@ -220,3 +220,66 @@ def generate_gemini_and_agents_md(workspace_root: Path, project_name: str, stack
         shutil.copyfile(gemini_path, agents_path)
 
     return gemini_path, agents_path
+
+CONTEXT_MODULE_TEMPLATE = """# {name} Context Module
+
+- **Path Mapping**: `{path_glob}`
+- **Last Verified**: {date}
+
+---
+
+## 1. Purpose & Responsibility <!-- ANCHOR: PURPOSE -->
+{description}.
+
+---
+
+## 2. Public Interfaces & Contracts <!-- ANCHOR: CONTRACTS -->
+
+| Interface / Symbol | Type | Responsibility |
+| :--- | :--- | :--- |
+| `[SymbolName]` | Class / Function | [Description] |
+
+---
+
+## 3. Current Invariants & State <!-- ANCHOR: INVARIANTS -->
+- [ ] Invariant 1: [Core domain rule]
+"""
+
+ADR_README_TEMPLATE = """# Architecture Decision Records (ADR)
+
+This directory contains records of architecturally significant decisions following the MADR / Y-Statement standard.
+
+## Index <!-- ANCHOR: ADR_INDEX -->
+- [0000-template.md](0000-template.md): Canonical ADR Template
+"""
+
+def scaffold_context_and_adr(workspace_root: Path, subsystems: list[tuple[str, str, str]], force: bool = False) -> list[Path]:
+    created = []
+    context_dir = workspace_root / "docs" / "context"
+    adr_dir = workspace_root / "docs" / "adr"
+
+    context_dir.mkdir(parents=True, exist_ok=True)
+    adr_dir.mkdir(parents=True, exist_ok=True)
+
+    today = datetime.date.today().isoformat()
+
+    for path_glob, doc_rel, desc in subsystems:
+        doc_path = workspace_root / doc_rel
+        if not doc_path.exists() or force:
+            doc_path.parent.mkdir(parents=True, exist_ok=True)
+            content = CONTEXT_MODULE_TEMPLATE.format(
+                name=desc,
+                path_glob=path_glob,
+                date=today,
+                description=desc
+            )
+            doc_path.write_text(content, encoding="utf-8")
+            created.append(doc_path)
+
+    adr_readme = adr_dir / "README.md"
+    if not adr_readme.exists() or force:
+        adr_readme.write_text(ADR_README_TEMPLATE, encoding="utf-8")
+        created.append(adr_readme)
+
+    return created
+

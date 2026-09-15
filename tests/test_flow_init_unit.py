@@ -9,6 +9,7 @@ from scripts.flow_init import (
     detect_project_stack,
     discover_subsystems,
     generate_gemini_and_agents_md,
+    scaffold_context_and_adr,
 )
 
 class TestGitEnvironmentInspector(unittest.TestCase):
@@ -85,6 +86,15 @@ class TestGeminiAndAgentsScaffolder(unittest.TestCase):
             self.assertIn("## Stack", content)
             self.assertIn("## Context Routing Map", content)
             self.assertIn("<!-- ANCHOR: CONTEXT_ROUTING -->", content)
+
+class TestContextAndAdrScaffolder(unittest.TestCase):
+    def test_scaffold_context_and_adr_files(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            subsystems = [("src/auth/**", "docs/context/src-auth.md", "Auth Subsystem")]
+            created = scaffold_context_and_adr(root, subsystems, force=True)
+            self.assertTrue((root / "docs" / "context" / "src-auth.md").exists())
+            self.assertTrue((root / "docs" / "adr" / "README.md").exists())
 
 if __name__ == "__main__":
     unittest.main()
