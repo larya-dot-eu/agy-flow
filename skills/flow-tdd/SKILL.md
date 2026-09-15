@@ -16,8 +16,9 @@ Execute the approved implementation plan from [`/flow-plan`](../flow-plan/SKILL.
 
 ```text
   ┌─────────────────────────────────────────────────────────────┐
-  │ Step 1: Branch Isolation & Clean Working Tree Check         │
+  │ Step 1: Branch Isolation & Plan Status Initialization       │
   │   - git checkout -b feature/YYYY-MM-DD-[feature]            │
+  │   - Set docs/plans/ status: 'In Implementation'             │
   └──────────────────────────────┬──────────────────────────────┘
                                  │
                                  ▼
@@ -44,7 +45,10 @@ Execute the approved implementation plan from [`/flow-plan`](../flow-plan/SKILL.
                                  │
                                  ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │ Step 3: All Tasks Complete ──► Handoff to /flow-release     │
+  │ Step 3: All Tasks Complete & Verified Green                 │
+  │   - Update docs/plans/ status: 'Implemented & Tested'       │
+  │   - Commit updated plan artifact                            │
+  │   - Handoff to /flow-release (Phase 08-10)                  │
   └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -65,6 +69,11 @@ Before touching any source files:
 3. **Create Dedicated Feature Branch**:
    ```bash
    git checkout -b feature/YYYY-MM-DD-[feature-name]
+   ```
+4. **Initialize Plan Execution Status**:
+   Update `docs/plans/YYYY-MM-DD-[feature]-plan.md` header:
+   ```markdown
+   - **Status**: In Implementation
    ```
 
 ---
@@ -114,13 +123,23 @@ Execute each task defined in `docs/plans/YYYY-MM-DD-[feature]-plan.md` using the
 ## 4. Exit Gate & Transition to Phase 8, 9 & 10
 
 When all tasks in the plan are marked complete:
-1. Run the entire test suite and project linters:
+1. **Run Full Verification Battery**:
    ```bash
-   # Run full project test suite
+   # Run full project test suite and linters
    pytest
    npm test
    cargo test
    go test ./...
    ```
-2. Confirm 100% tests passing and clean git status.
-3. Transition directly to **[`/flow-release`](../flow-release/SKILL.md)** (Phase 8, 9 & 10).
+2. **Update Plan Artifact Status & Checkboxes**:
+   - Verify all task checkboxes in `docs/plans/YYYY-MM-DD-[feature]-plan.md` are marked complete (`- [x]`).
+   - Update the header in `docs/plans/YYYY-MM-DD-[feature]-plan.md` to:
+     ```markdown
+     - **Status**: Implemented & Tested
+     ```
+   - Commit the updated plan:
+     ```bash
+     git add docs/plans/
+     git commit -m "docs(plan): mark implementation plan as Implemented & Tested"
+     ```
+3. **Transition**: Transition directly to **[`/flow-release`](../flow-release/SKILL.md)** (Phase 8, 9 & 10).
