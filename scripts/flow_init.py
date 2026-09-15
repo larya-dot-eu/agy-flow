@@ -389,6 +389,22 @@ def run_flow_init(argv: list[str] | None = None) -> int:
 
     # 2. Stack probe
     stack_info = detect_project_stack(workspace_root)
+    if is_interactive:
+        langs_display = ", ".join(stack_info["languages"])
+        test_display = stack_info["test_cmd"]
+        try:
+            prompt_stack = input(f"Detected stack: {langs_display} (Test: {test_display}). Accept? [Y/n]: ").strip().lower()
+            if prompt_stack in {"n", "no"}:
+                custom_langs = input("Custom languages (comma-separated, default: Generic): ").strip()
+                if custom_langs:
+                    stack_info["languages"] = [lang.strip() for lang in custom_langs.split(",") if lang.strip()]
+                else:
+                    stack_info["languages"] = ["Generic"]
+                custom_test = input("Primary test command (default: echo 'No automated tests configured'): ").strip()
+                stack_info["test_cmd"] = custom_test if custom_test else "echo 'No automated tests configured'"
+        except (EOFError, KeyboardInterrupt):
+            pass
+
     print(f"  [+] Detected Stack: {', '.join(stack_info['languages'])}")
     print(f"  [+] Discovered Test Command: {stack_info['test_cmd']}")
 

@@ -179,5 +179,15 @@ class TestInteractiveWizard(unittest.TestCase):
             self.assertEqual(exit_code, 0)
             self.assertFalse((Path(tmpdir) / ".git").exists())
 
+    @patch("sys.stdin.isatty", return_value=True)
+    @patch("builtins.input", side_effect=["n", "Kotlin, Java", "gradle test"])
+    def test_interactive_stack_rejection_prompts_custom_inputs(self, mock_input, mock_isatty):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            exit_code = run_flow_init(["--dir", tmpdir, "--no-git"])
+            self.assertEqual(exit_code, 0)
+            gemini_content = (Path(tmpdir) / "GEMINI.md").read_text(encoding="utf-8")
+            self.assertIn("Kotlin, Java", gemini_content)
+            self.assertIn("gradle test", gemini_content)
+
 if __name__ == "__main__":
     unittest.main()
