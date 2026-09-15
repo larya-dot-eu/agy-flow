@@ -161,7 +161,7 @@ Maintain a running record throughout the session:
 ## 6. Specification Authoring & Spec Self-Review
 
 ### Specification Authoring
-For Architectural paths, write the finalized design using [`templates/spec.md.template`](../../templates/spec.md.template) to:
+For Architectural paths, write the finalized design using [`resources/spec.md.template`](resources/spec.md.template) to:
 `docs/specs/YYYY-MM-DD-[feature]-spec.md`
 
 ### 4-Point Spec Self-Review (Mandatory Inline Audit)

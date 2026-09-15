@@ -50,10 +50,10 @@ Do NOT begin implementation planning or coding during Phase 3. A specification M
 
 ---
 
-## 1. Canonical Template Usage (`templates/spec.md.template`)
+## 1. Canonical Template Usage (`resources/spec.md.template`)
 
 When authoring a specification:
-1. **Load Template**: Read [`templates/spec.md.template`](../../templates/spec.md.template) as the strict structural blueprint.
+1. **Load Template**: Read [`resources/spec.md.template`](resources/spec.md.template) as the strict structural blueprint.
 2. **Preserve Section Anchors**: Retain all inline anchor comments (`<!-- ANCHOR: ABSTRACT -->`, `<!-- ANCHOR: NORMATIVE_REQUIREMENTS -->`, etc.) to enable deterministic section mutation.
 3. **Save Location**: Write to `docs/specs/YYYY-MM-DD-[feature-name]-spec.md`.
 

@@ -103,7 +103,7 @@ Every task step must contain the **exact, complete code** and **exact commands**
 
 ## 5. Canonical Plan Template Reference
 
-Plans **MUST** adhere to [`templates/plan.md.template`](../../templates/plan.md.template) and maintain standardized **Section Anchors** (`<!-- SECTION: ... -->`).
+Plans **MUST** adhere to [`resources/plan.md.template`](resources/plan.md.template) and maintain standardized **Section Anchors** (`<!-- SECTION: ... -->`).
 
 ---
 
