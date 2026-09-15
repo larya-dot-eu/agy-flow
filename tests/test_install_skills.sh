@@ -48,6 +48,14 @@ if [ ! -x "${HOME}/.local/bin/flow-init" ]; then
     echo "Test 1 Failed: ${HOME}/.local/bin/flow-init is not executable"
     exit 1
 fi
+
+# Test executing directly via the symlink
+mkdir -p "$TEST_DIR/sample_run"
+"${HOME}/.local/bin/flow-init" --dir "$TEST_DIR/sample_run" --yes --no-git > /dev/null
+if [ ! -f "$TEST_DIR/sample_run/GEMINI.md" ]; then
+    echo "Test 1 Failed: Running ~/.local/bin/flow-init failed to create GEMINI.md"
+    exit 1
+fi
 echo "Scenario 1 Passed: Local execution completed successfully."
 
 echo "Scenario 2: Global Plugin Sync"
