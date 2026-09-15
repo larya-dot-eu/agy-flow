@@ -144,7 +144,7 @@ go test ./...
 ```
 
 ### Step 2: Dispatch Independent Subagent Reviewer via `/flow-code-review`
-Activate **[`/flow-code-review`](../flow-code-review/SKILL.md)** to dispatch an independent subagent reviewer (`invoke_subagent` with `TypeName: "self"`, `Role: "Implementation Code Reviewer"`) using `flow-code-review/references/reviewer-prompt.md`.
+Activate **[`/flow-code-review`](../flow-code-review/SKILL.md)** to dispatch an independent subagent reviewer (`invoke_subagent` with `TypeName: "self"`, `Role: "Phase 7.5 Code Reviewer"`) using `flow-code-review/references/reviewer-prompt.md`.
 
 ### Step 3: Resolution Loop
 - If the reviewer requests changes (`REVISION REQUIRED`): resolve findings via strict Red-Green-Refactor cycles until approved.

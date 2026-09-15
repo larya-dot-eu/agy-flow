@@ -35,6 +35,7 @@ auth.json
 # Logs, Diagnostics & Temporary Files
 *.log
 tmp/
+.tmp/
 temp/
 scratch/
 brain/
@@ -43,6 +44,7 @@ artifacts/
 .gemini/
 .agents/
 .antigravity/
+docs/**/.tmp/
 
 # Local Roadmaps, Ideas & Private Notes
 ROADMAP.md
