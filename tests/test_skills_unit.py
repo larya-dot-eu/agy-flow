@@ -148,5 +148,21 @@ class TestResourceAndReferenceValidator(unittest.TestCase):
             errors = validate_skill_resources_and_references(skill_dir)
             self.assertTrue(any("Referenced resource missing" in e for e in errors))
 
+from tests.test_skills_integrity import (
+    validate_code_fences,
+    validate_tool_and_subagent_contracts,
+    validate_tooling_discipline,
+    validate_terminology,
+    validate_skill_frontmatter,
+    validate_skill_resources_and_references,
+    validate_repo_inventory_and_permissions
+)
+
+class TestInventoryAndPermissionsValidator(unittest.TestCase):
+    def test_repo_inventory_matches_12_skills(self):
+        repo_root = Path(__file__).resolve().parent.parent
+        errors = validate_repo_inventory_and_permissions(repo_root)
+        self.assertEqual(errors, [])
+
 if __name__ == "__main__":
     unittest.main()

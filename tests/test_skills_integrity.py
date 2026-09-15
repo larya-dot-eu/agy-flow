@@ -1,4 +1,7 @@
 # tests/test_skills_integrity.py
+import os
+import sys
+import json
 import re
 from pathlib import Path
 
@@ -183,5 +186,63 @@ def validate_skill_resources_and_references(skill_dir: Path) -> list[str]:
                 found_in_any_skill = any((s / "resources" / base_name).exists() for s in skills_root.iterdir() if s.is_dir())
                 if not found_in_any_skill:
                     errors.append(f"{skill_file}:{idx}: Referenced resource missing on disk: '{rel_path}'")
+
+    return errors
+
+def validate_repo_inventory_and_permissions(repo_root: Path) -> list[str]:
+    errors = []
+    skills_dir = repo_root / "skills"
+    if not skills_dir.exists():
+        return [f"{repo_root}: Missing skills/ directory"]
+
+    discovered_skills = {p.name for p in skills_dir.iterdir() if p.is_dir() and (p / "SKILL.md").exists()}
+
+    # Verify exact 12 flow skills exist
+    if len(discovered_skills) < 12:
+        errors.append(f"Expected at least 12 flow skills, but found {len(discovered_skills)}: {sorted(discovered_skills)}")
+
+    # Check README.md, HOWTO.md, and flow-master/SKILL.md
+    check_files = [
+        repo_root / "README.md",
+        repo_root / "HOWTO.md",
+        repo_root / "skills" / "flow-master" / "SKILL.md"
+    ]
+
+    for cf in check_files:
+        if cf.exists():
+            content = cf.read_text(encoding="utf-8")
+            for skill in discovered_skills:
+                # 'flow-master' can be mentioned as 'flow-master' or '/flow '
+                if skill == "flow-master":
+                    if "flow-master" not in content and "/flow" not in content:
+                        errors.append(f"{cf}: Missing mention of skill 'flow-master' / '/flow'")
+                else:
+                    if skill not in content:
+                        errors.append(f"{cf}: Missing mention of skill '{skill}'")
+
+    # Check install-skills.sh copies skills directory
+    installer = repo_root / "install-skills.sh"
+    if installer.exists():
+        content = installer.read_text(encoding="utf-8")
+        if "skills" not in content:
+            errors.append(f"{installer}: Missing skills directory copy logic in installer")
+
+    # Check script executable permissions
+    scripts = [
+        repo_root / "install-skills.sh",
+        repo_root / "scripts" / "context-guard.sh"
+    ]
+    for script in scripts:
+        if script.exists():
+            if not os.access(script, os.X_OK):
+                errors.append(f"{script}: Script is not executable (+x)")
+
+    # Check json syntax
+    for json_file in [repo_root / "plugin.json", repo_root / "hooks.json"]:
+        if json_file.exists():
+            try:
+                json.loads(json_file.read_text(encoding="utf-8"))
+            except Exception as e:
+                errors.append(f"{json_file}: Invalid JSON syntax: {e}")
 
     return errors
