@@ -7,7 +7,7 @@ These directives are permanently active across all workspaces, sessions, and rep
 ## 0. The Zero-Discovery Context Routing Law
 
 1. When entering a repository or starting a task on a specific subsystem:
-   - Check if the repository's root `GEMINI.md` or `AGENTS.md` defines a `## Context Routing Map`.
+   - Check if the repository's root `GEMINI.md`, `CLAUDE.md` or `AGENTS.md` defines a `## Context Routing Map`.
    - If a matching path mapping exists, read that context document BEFORE performing broad recursive repository scans.
    - If NO map exists or the target path is unmapped, proceed using standard, minimal directory inspection without creating unrequested files.
 
@@ -52,3 +52,15 @@ If a task involves creative, constructive, architectural, or code modification w
 - **Architecture Modeling**: Always render component topologies, data flows, and state machines using native **Mermaid diagrams** (`mermaid`).
 - **Subagents**: Use `invoke_subagent` with `TypeName: "self"` for independent audits and `TypeName: "research"` for deep read-only codebase exploration.
 - **Deterministic Guards**: Respect `hooks.json` lifecycle hooks; maintain synchronized context files before completing sessions or git commits.
+- **Reporting:** For ungated changes, report only: changed files, behavior change, validation run, and remaining risks. Nothing else.
+
+---
+
+## 4. File Editing Protocol (CRITICAL)
+
+You must strictly differentiate between creating new files and modifying existing ones:
+
+- **For NEW files:** You may use `write_to_file` to output the entire content.
+- **For EXISTING files:** Do not rewrite the entire file. You are FORBIDDEN from using `write_to_file`. You must use targeted search-and-replace (`replace_file_content`) or output a unified diff to modify only the affected lines.
+- **Context Limits:** When modifying, output ONLY the exact lines to be removed and added, bracketed by exactly 2 lines of unchanged context code. Outputting more than 10 lines of unchanged code violates this protocol.
+- **Fallback:** If a targeted edit fails (e.g., due to indentation or line mismatches), DO NOT fallback to a full rewrite. Stop and ask the user for the exact target line numbers.
