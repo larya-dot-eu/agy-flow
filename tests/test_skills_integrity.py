@@ -273,6 +273,54 @@ def validate_repo_inventory_and_permissions(repo_root: Path) -> list[str]:
 
     return errors
 
+CONTEXT_PLACEHOLDER_REGEX = re.compile(r'\[(SymbolName|Core domain rule|Description)\]')
+PATH_REF_REGEX = re.compile(r'`([a-zA-Z0-9_\-\./]+(?:\.[a-zA-Z0-9]+|\.sh))`')
+
+def validate_context_documents(repo_root: Path) -> list[str]:
+    errors = []
+    docs_context_dir = repo_root / "docs" / "context"
+    if not docs_context_dir.exists():
+        return errors
+
+    context_files = [p for p in docs_context_dir.glob("*.md") if p.name != "README.md"]
+    if not context_files:
+        return errors
+
+    required_anchors = {"PURPOSE", "CONTRACTS", "INVARIANTS"}
+
+    for cfile in context_files:
+        content = cfile.read_text(encoding="utf-8")
+        lines = content.splitlines()
+
+        # Check required anchors
+        found_anchors = set()
+        for idx, line in enumerate(lines, start=1):
+            match = HEADING_ANCHOR_REGEX.match(line.strip())
+            if match:
+                found_anchors.add(match.group(1))
+
+        missing_anchors = required_anchors - found_anchors
+        if missing_anchors:
+            for anc in sorted(missing_anchors):
+                errors.append(f"{cfile}: Missing required anchor 'ANCHOR: {anc}'")
+
+        # Check unpopulated placeholders
+        for idx, line in enumerate(lines, start=1):
+            match = CONTEXT_PLACEHOLDER_REGEX.search(line)
+            if match:
+                errors.append(f"{cfile}:{idx}: Unpopulated placeholder '[{match.group(1)}]' detected")
+
+        # Check file references in code blocks or backticks
+        for idx, line in enumerate(lines, start=1):
+            for match in PATH_REF_REGEX.finditer(line):
+                rel_path = match.group(1)
+                # Only check concrete paths belonging to project subsystems (scripts/, tests/, skills/, rules/, docs/)
+                if any(rel_path.startswith(prefix) for prefix in ("scripts/", "tests/", "skills/", "rules/", "docs/")):
+                    if "*" not in rel_path and not (repo_root / rel_path).exists():
+                        errors.append(f"{cfile}:{idx}: Referenced path missing on disk: '{rel_path}'")
+
+    return errors
+
 def run_all_checks(repo_root: Path) -> int:
     print("=" * 65)
     print(" Running Antigravity Flow Skill Integrity & Markdown Linter")
@@ -317,6 +365,9 @@ def run_all_checks(repo_root: Path) -> int:
 
     # 4. Validate inventory parity and permissions
     all_errors.extend(validate_repo_inventory_and_permissions(repo_root))
+
+    # 5. Validate context documents
+    all_errors.extend(validate_context_documents(repo_root))
 
     if all_errors:
         print("\n❌ INTEGRITY CHECK FAILED with violations:")

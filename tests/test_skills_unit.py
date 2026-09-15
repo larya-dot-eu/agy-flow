@@ -10,7 +10,8 @@ from tests.test_skills_integrity import (
     validate_terminology,
     validate_skill_frontmatter,
     validate_skill_resources_and_references,
-    validate_repo_inventory_and_permissions
+    validate_repo_inventory_and_permissions,
+    validate_context_documents
 )
 
 class TestCodeFenceValidator(unittest.TestCase):
@@ -167,5 +168,76 @@ class TestInventoryAndPermissionsValidator(unittest.TestCase):
         errors = validate_repo_inventory_and_permissions(repo_root)
         self.assertEqual(errors, [])
 
+class TestContextDocumentValidator(unittest.TestCase):
+    def test_valid_context_documents_pass(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs_ctx = root / "docs" / "context"
+            docs_ctx.mkdir(parents=True)
+            scripts_dir = root / "scripts"
+            scripts_dir.mkdir()
+            (scripts_dir / "tool.py").write_text("print('hello')")
+            
+            gemini_md = root / "GEMINI.md"
+            gemini_md.write_text(
+                "# Project\n## Context Routing Map\n| `scripts/**` | `docs/context/scripts.md` |\n"
+            )
+            
+            (docs_ctx / "scripts.md").write_text(
+                "# Scripts Context\n"
+                "## 1. Purpose & Responsibility <!-- ANCHOR: PURPOSE -->\nAutomation.\n"
+                "## 2. Public Interfaces & Contracts <!-- ANCHOR: CONTRACTS -->\n"
+                "| Interface | Type | Responsibility |\n| `scripts/tool.py` | Script | Runs tool |\n"
+                "## 3. Current Invariants & State <!-- ANCHOR: INVARIANTS -->\n"
+                "- [x] Invariant 1\n"
+            )
+            errors = validate_context_documents(root)
+            self.assertEqual(errors, [])
+
+    def test_missing_anchors_fail(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs_ctx = root / "docs" / "context"
+            docs_ctx.mkdir(parents=True)
+            (root / "GEMINI.md").write_text("# Project\n## Context Routing Map\n| `core/**` | `docs/context/core.md` |\n")
+            (docs_ctx / "core.md").write_text("# Core Context\nNo anchors here.")
+            errors = validate_context_documents(root)
+            self.assertTrue(any("Missing required anchor" in e for e in errors))
+
+    def test_unpopulated_placeholders_fail(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs_ctx = root / "docs" / "context"
+            docs_ctx.mkdir(parents=True)
+            (root / "GEMINI.md").write_text("# Project\n## Context Routing Map\n| `core/**` | `docs/context/core.md` |\n")
+            (docs_ctx / "core.md").write_text(
+                "# Core Context\n"
+                "## 1. Purpose & Responsibility <!-- ANCHOR: PURPOSE -->\nCore.\n"
+                "## 2. Public Interfaces & Contracts <!-- ANCHOR: CONTRACTS -->\n"
+                "| `[SymbolName]` | Class | [Description] |\n"
+                "## 3. Current Invariants & State <!-- ANCHOR: INVARIANTS -->\n"
+                "- [ ] Invariant 1: [Core domain rule]\n"
+            )
+            errors = validate_context_documents(root)
+            self.assertTrue(any("Unpopulated placeholder" in e for e in errors))
+
+    def test_nonexistent_file_reference_fails(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs_ctx = root / "docs" / "context"
+            docs_ctx.mkdir(parents=True)
+            (root / "GEMINI.md").write_text("# Project\n## Context Routing Map\n| `scripts/**` | `docs/context/scripts.md` |\n")
+            (docs_ctx / "scripts.md").write_text(
+                "# Scripts Context\n"
+                "## 1. Purpose & Responsibility <!-- ANCHOR: PURPOSE -->\nAutomation.\n"
+                "## 2. Public Interfaces & Contracts <!-- ANCHOR: CONTRACTS -->\n"
+                "| Interface | Type | Responsibility |\n| `scripts/nonexistent.py` | Script | Nonexistent |\n"
+                "## 3. Current Invariants & State <!-- ANCHOR: INVARIANTS -->\n"
+                "- [x] Invariant 1\n"
+            )
+            errors = validate_context_documents(root)
+            self.assertTrue(any("Referenced path missing on disk" in e for e in errors))
+
 if __name__ == "__main__":
     unittest.main()
+
