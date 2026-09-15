@@ -8,17 +8,46 @@ import subprocess
 import time
 from pathlib import Path
 
-DEFAULT_GITIGNORE = """# agy-flow local artifacts
+DEFAULT_GITIGNORE = """# Operating System & IDEs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Secrets, Keys & Environment Variables
+.env
+.env.*
+*.pem
+*.key
+*.token
+*.secret
+credentials.json
+auth.json
+
+# Antigravity CLI & AI Agents Local Memory & Artifacts
 .tmp/
 docs/**/.tmp/
+brain/
+artifacts/
+scratch/
+.system_generated/
+.gemini/
+.agents/
+.antigravity/
+*.transcript.*
+*.jsonl
+
+# Build & Dependency Artifacts
 __pycache__/
 *.pyc
 node_modules/
 dist/
 build/
 target/
-.env
-.DS_Store
+.venv/
+venv/
 """
 
 def inspect_git_environment(workspace_root: Path, allow_git_init: bool = False, skip_git: bool = False) -> dict:
