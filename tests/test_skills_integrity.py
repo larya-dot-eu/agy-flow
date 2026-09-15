@@ -114,3 +114,41 @@ def validate_terminology(content: str, file_path: Path) -> list[str]:
             errors.append(f"{file_path}:{idx}: Malformed slash command with underscore detected. Use kebab-case (e.g. /flow-spec).")
 
     return errors
+
+def validate_skill_frontmatter(skill_dir: Path) -> list[str]:
+    skill_file = skill_dir / "SKILL.md"
+    if not skill_file.exists():
+        return [f"{skill_dir}: Missing SKILL.md file"]
+
+    content = skill_file.read_text(encoding="utf-8")
+    if not content.startswith("---"):
+        return [f"{skill_file}:1: Missing YAML frontmatter leading '---'"]
+
+    parts = content.split("---", 2)
+    if len(parts) < 3:
+        return [f"{skill_file}:1: Unclosed YAML frontmatter"]
+
+    frontmatter = parts[1]
+    errors = []
+    metadata = {}
+
+    for line in frontmatter.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if ":" in line:
+            k, v = line.split(":", 1)
+            metadata[k.strip()] = v.strip().strip('"').strip("'")
+
+    required_keys = {"name", "description", "risk", "source"}
+    missing = required_keys - set(metadata.keys())
+    if missing:
+        errors.append(f"{skill_file}: Missing required frontmatter keys: {', '.join(sorted(missing))}")
+
+    if "name" in metadata and metadata["name"] != skill_dir.name:
+        errors.append(f"{skill_file}: Frontmatter name '{metadata['name']}' does not match directory '{skill_dir.name}'")
+
+    if "risk" in metadata and metadata["risk"] not in {"low", "medium", "high", "critical"}:
+        errors.append(f"{skill_file}: Invalid risk '{metadata['risk']}'. Must be low, medium, high, or critical.")
+
+    return errors

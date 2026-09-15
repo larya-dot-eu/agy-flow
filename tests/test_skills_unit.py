@@ -1,7 +1,14 @@
 # tests/test_skills_unit.py
 import unittest
+import tempfile
 from pathlib import Path
-from tests.test_skills_integrity import validate_code_fences
+from tests.test_skills_integrity import (
+    validate_code_fences,
+    validate_tool_and_subagent_contracts,
+    validate_tooling_discipline,
+    validate_terminology,
+    validate_skill_frontmatter
+)
 
 class TestCodeFenceValidator(unittest.TestCase):
     def test_balanced_fences_pass(self):
@@ -67,13 +74,6 @@ class TestToolingDisciplineValidator(unittest.TestCase):
         errors = validate_tooling_discipline(content, Path("skills/test/SKILL.md"))
         self.assertTrue(any("manage_task for todos" in e for e in errors))
 
-from tests.test_skills_integrity import (
-    validate_code_fences,
-    validate_tool_and_subagent_contracts,
-    validate_tooling_discipline,
-    validate_terminology
-)
-
 class TestTerminologyValidator(unittest.TestCase):
     def test_correct_naming_passes(self):
         content = "Welcome to agy-flow and Antigravity Flow with /flow-spec and /flow-code-review."
@@ -89,6 +89,27 @@ class TestTerminologyValidator(unittest.TestCase):
         content = "Trigger with /flow_spec instead of /flow-spec."
         errors = validate_terminology(content, Path("skills/test/SKILL.md"))
         self.assertTrue(any("Malformed slash command" in e for e in errors))
+
+class TestFrontmatterValidator(unittest.TestCase):
+    def test_valid_frontmatter_passes(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            skill_dir = Path(tmpdir) / "flow-test"
+            skill_dir.mkdir()
+            (skill_dir / "SKILL.md").write_text(
+                "---\nname: flow-test\ndescription: Test skill\nrisk: low\nsource: custom\n---\n# Content\n"
+            )
+            errors = validate_skill_frontmatter(skill_dir)
+            self.assertEqual(errors, [])
+
+    def test_mismatched_name_fails(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            skill_dir = Path(tmpdir) / "flow-test"
+            skill_dir.mkdir()
+            (skill_dir / "SKILL.md").write_text(
+                "---\nname: flow-other\ndescription: Test skill\nrisk: low\nsource: custom\n---\n# Content\n"
+            )
+            errors = validate_skill_frontmatter(skill_dir)
+            self.assertTrue(any("does not match directory" in e for e in errors))
 
 if __name__ == "__main__":
     unittest.main()
