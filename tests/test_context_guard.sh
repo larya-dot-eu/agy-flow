@@ -66,6 +66,19 @@ fi
 rm -f src/api/handler.js docs/context/api.md
 echo "Scenario 6 Passed: Synchronized updates allowed."
 
+
+echo "Scenario 6b: Synchronized source and doc updates on commit"
+rm -f src/api/handler.js docs/context/api.md
+touch src/api/handler.js
+touch docs/context/api.md
+git add src/api/handler.js docs/context/api.md
+COMMIT_INPUT_6B='{"toolCall":{"name":"run_command","args":{"CommandLine":"git commit -m \"feat: sync updates\""}}}'
+OUTPUT6B=$(echo "$COMMIT_INPUT_6B" | ./scripts/context-guard.sh --check-commit)
+echo "$OUTPUT6B" | grep -q '"decision": "allow"' || { echo "Test 6b Failed! Output was: $OUTPUT6B"; exit 1; }
+git reset HEAD src/api/handler.js docs/context/api.md > /dev/null 2>&1 || true
+rm -f src/api/handler.js docs/context/api.md
+echo "Scenario 6b Passed: Synchronized updates on commit allowed."
+
 echo "Scenario 7: Fallback to AGENTS.md"
 git rm -f GEMINI.md -q
 cat <<'EOF_AGENTS' > AGENTS.md
