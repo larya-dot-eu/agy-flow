@@ -86,7 +86,6 @@ cat << 'MOCK_GIT' | sed 's/exit/exit/g' | sed 's/bash/bash/g' > "$TEST_DIR/bin/g
 #!/usr/bin/env bash
 if [[ "$1" == "clone" ]]; then
     # Extract destination dir
-    DEST="${@: -2:1}"
     # Remove -q if it is the last argument
     if [[ "${@: -1}" == "-q" ]]; then
         DEST="${@: -2:1}"
