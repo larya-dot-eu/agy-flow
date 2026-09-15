@@ -99,3 +99,18 @@ def validate_tooling_discipline(content: str, file_path: Path) -> list[str]:
                 errors.append(f"{file_path}:{idx}: Misuse of manage_task for todos detected. manage_task is strictly for background OS processes.")
 
     return errors
+
+AG_FLOW_TYPO_REGEX = re.compile(r'\bAg-Flow\b')
+SLASH_COMMAND_TYPO_REGEX = re.compile(r'/flow_[a-z]+')
+
+def validate_terminology(content: str, file_path: Path) -> list[str]:
+    errors = []
+    lines = content.splitlines()
+
+    for idx, line in enumerate(lines, start=1):
+        if AG_FLOW_TYPO_REGEX.search(line):
+            errors.append(f"{file_path}:{idx}: Prohibited term 'Ag-Flow' detected. Use 'agy-flow' or 'Antigravity Flow'.")
+        if SLASH_COMMAND_TYPO_REGEX.search(line):
+            errors.append(f"{file_path}:{idx}: Malformed slash command with underscore detected. Use kebab-case (e.g. /flow-spec).")
+
+    return errors

@@ -67,5 +67,28 @@ class TestToolingDisciplineValidator(unittest.TestCase):
         errors = validate_tooling_discipline(content, Path("skills/test/SKILL.md"))
         self.assertTrue(any("manage_task for todos" in e for e in errors))
 
+from tests.test_skills_integrity import (
+    validate_code_fences,
+    validate_tool_and_subagent_contracts,
+    validate_tooling_discipline,
+    validate_terminology
+)
+
+class TestTerminologyValidator(unittest.TestCase):
+    def test_correct_naming_passes(self):
+        content = "Welcome to agy-flow and Antigravity Flow with /flow-spec and /flow-code-review."
+        errors = validate_terminology(content, Path("skills/test/SKILL.md"))
+        self.assertEqual(errors, [])
+
+    def test_ag_flow_typo_fails(self):
+        content = "The Ag-Flow engineering lifecycle is active."
+        errors = validate_terminology(content, Path("skills/test/SKILL.md"))
+        self.assertTrue(any("Prohibited term 'Ag-Flow'" in e for e in errors))
+
+    def test_malformed_slash_command_fails(self):
+        content = "Trigger with /flow_spec instead of /flow-spec."
+        errors = validate_terminology(content, Path("skills/test/SKILL.md"))
+        self.assertTrue(any("Malformed slash command" in e for e in errors))
+
 if __name__ == "__main__":
     unittest.main()
