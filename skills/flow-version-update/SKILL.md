@@ -24,7 +24,7 @@ Update the local `agy-flow` skill suite, canonical templates, global prime direc
                └─────────────┬─────────────┘
                              │
                ┌─────────────▼─────────────┐
-               │ 3. Verify Local Inventory │ ──► Validate 10+ skills & 4 templates
+               │ 3. Verify Local Inventory │ ──► Validate 13 skills & 4 templates
                └─────────────┬─────────────┘
                              │
                ┌─────────────▼─────────────┐
@@ -79,5 +79,5 @@ Upon successful deployment, output the update confirmation scorecard:
 ### Components Synchronized
 - [x] **Skills Suite**: All `/flow-*` skills and embedded `resources/` templates updated in `~/.gemini/config/skills/`
 - [x] **Global Directives**: Prime directives updated in `~/.gemini/config/rules/GEMINI.md`
-- [x] **Lifecycle Scripts**: `context-guard.sh` updated in `~/.gemini/config/scripts/`
+- [x] **Lifecycle Scripts**: `context-guard.sh`, `flow-init.sh`, and `flow_init.py` updated in `~/.gemini/config/scripts/`
 ```
