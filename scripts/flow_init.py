@@ -66,3 +66,67 @@ def inspect_git_environment(workspace_root: Path, allow_git_init: bool = False, 
         "user_email": user_email,
         "gh_auth": gh_auth
     }
+
+def detect_project_stack(workspace_root: Path) -> dict:
+    languages = []
+    build_tools = []
+    test_cmd = None
+    dev_cmd = None
+
+    # Python check
+    if any((workspace_root / f).exists() for f in ["pyproject.toml", "setup.py", "requirements.txt", "Pipfile", "poetry.lock", "uv.lock"]):
+        languages.append("Python")
+        if (workspace_root / "pyproject.toml").exists() or (workspace_root / "pytest.ini").exists():
+            test_cmd = "pytest"
+        else:
+            test_cmd = "python3 -m unittest discover tests"
+
+    # Node / TS check
+    if (workspace_root / "package.json").exists():
+        languages.append("TypeScript / JavaScript")
+        try:
+            pkg = json.loads((workspace_root / "package.json").read_text(encoding="utf-8"))
+            scripts = pkg.get("scripts", {})
+            if "test" in scripts:
+                test_cmd = "npm test"
+            if "dev" in scripts:
+                dev_cmd = "npm run dev"
+            elif "start" in scripts:
+                dev_cmd = "npm start"
+        except Exception:
+            if not test_cmd:
+                test_cmd = "npm test"
+
+    # Rust check
+    if (workspace_root / "Cargo.toml").exists():
+        languages.append("Rust")
+        build_tools.append("cargo")
+        if not test_cmd:
+            test_cmd = "cargo test"
+
+    # Go check
+    if (workspace_root / "go.mod").exists():
+        languages.append("Go")
+        build_tools.append("go")
+        if not test_cmd:
+            test_cmd = "go test ./..."
+
+    # Docker check
+    if any((workspace_root / f).exists() for f in ["Dockerfile", "docker-compose.yml", "compose.yaml"]):
+        build_tools.append("Docker")
+
+    # Makefile check
+    if (workspace_root / "Makefile").exists():
+        build_tools.append("Make")
+
+    if not languages:
+        languages.append("Generic / Markdown")
+    if not test_cmd:
+        test_cmd = "echo 'No automated tests configured'"
+
+    return {
+        "languages": languages,
+        "build_tools": build_tools,
+        "test_cmd": test_cmd,
+        "dev_cmd": dev_cmd
+    }
