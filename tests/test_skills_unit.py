@@ -44,5 +44,28 @@ class TestToolAndSubagentValidator(unittest.TestCase):
         errors = validate_tool_and_subagent_contracts(content, Path("skills/test/SKILL.md"))
         self.assertTrue(any("Deprecated" in e or "Invalid" in e for e in errors))
 
+from tests.test_skills_integrity import validate_code_fences, validate_tool_and_subagent_contracts, validate_tooling_discipline
+
+class TestToolingDisciplineValidator(unittest.TestCase):
+    def test_clean_content_passes(self):
+        content = "Track checklists via `- [ ]` in conversation.\nRun `pytest tests/`."
+        errors = validate_tooling_discipline(content, Path("skills/test/SKILL.md"))
+        self.assertEqual(errors, [])
+
+    def test_negative_assertion_for_manage_task_passes(self):
+        content = "Never use manage_task for todos (manage_task is for background OS processes only)."
+        errors = validate_tooling_discipline(content, Path("rules/AGENTS.md"))
+        self.assertEqual(errors, [])
+
+    def test_cd_command_fails(self):
+        content = 'CommandLine: "cd /tmp && run tests"'
+        errors = validate_tooling_discipline(content, Path("skills/test/SKILL.md"))
+        self.assertTrue(any("Prohibited 'cd' in command" in e for e in errors))
+
+    def test_manage_task_for_todos_fails(self):
+        content = "Use manage_task to manage your todo checklist."
+        errors = validate_tooling_discipline(content, Path("skills/test/SKILL.md"))
+        self.assertTrue(any("manage_task for todos" in e for e in errors))
+
 if __name__ == "__main__":
     unittest.main()

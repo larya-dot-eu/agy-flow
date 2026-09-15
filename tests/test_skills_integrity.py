@@ -82,3 +82,20 @@ def validate_tool_and_subagent_contracts(content: str, file_path: Path) -> list[
                 errors.append(f"{file_path}:{idx}: Deprecated tool name '{bad_tool}' detected.")
 
     return errors
+
+CD_IN_CMD_REGEX = re.compile(r'(?:CommandLine|Run|bash|sh)[:\s`]+"?cd\s+[^\n&;|]+(?:&&|;|\n|")', re.IGNORECASE)
+MANAGE_TASK_TODO_REGEX = re.compile(r'manage_task\s+(?:to\s+manage\s+(?:the\s+|your\s+)?|for\s+(?:the\s+|your\s+)?)(?:todo|checklist|tasks)', re.IGNORECASE)
+
+def validate_tooling_discipline(content: str, file_path: Path) -> list[str]:
+    errors = []
+    lines = content.splitlines()
+
+    for idx, line in enumerate(lines, start=1):
+        if CD_IN_CMD_REGEX.search(line) and not re.search(r'never propose a cd|do not use cd', line, re.IGNORECASE):
+            errors.append(f"{file_path}:{idx}: Prohibited 'cd' in command detected. Use Cwd parameter or relative paths.")
+        if MANAGE_TASK_TODO_REGEX.search(line):
+            # Verify line does not explicitly state "Never" or "Do not"
+            if not re.search(r'\b(never|do not|don\'t|avoid)\b.*manage_task', line, re.IGNORECASE):
+                errors.append(f"{file_path}:{idx}: Misuse of manage_task for todos detected. manage_task is strictly for background OS processes.")
+
+    return errors
