@@ -134,7 +134,7 @@ To prevent documentation drift and agent amnesia with mathematical certainty:
 | **`/flow-release`** | Phase 08–10: Verification & Release | Release report & PR summary | **Full suite verification**, Diff-to-Context sync, `docs/adr/` sync, SemVer changelog |
 | **`/flow-architect`** | Distributed Architecture Specialist | Architectural Scorecards & Mermaid Models | Clean/Hexagonal architecture, DDD bounded contexts, Sagas, CQRS |
 | **`/flow-adr`** | Architecture Decision Records | `docs/adr/NNNN-[title].md` & `README.md` | Standard MADR, Y-Statement & RFC formats, lifecycle tracking |
-| **`/flow-init`** | Universal Project Bootstrap & Onboarding | `GEMINI.md`, `AGENTS.md`, `docs/context/` | Non-destructive multi-stack discovery, git probe, $\le 200\text{ms}$ SLA |
+| **`/flow-init`** | Universal Project Bootstrap & Onboarding | `GEMINI.md`, `AGENTS.md`, `docs/context/` | Global binary `flow-init`, interactive wizard & Pre-Flight gate, $\le 200\text{ms}$ SLA |
 | **`/flow-skill-writer`** | Meta-Skill: Skill Authoring & Testing | Tested `SKILL.md` documents | **Test-Driven Documentation (TDD)** using subagent pressure testing |
 | **`/flow-version-update`** | Updater: In-Chat Version Upgrades | Automated suite & template sync | **Pulls latest GitHub release**, updates `~/.gemini/config/` |
 
