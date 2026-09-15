@@ -129,7 +129,7 @@ Execute each task defined in `docs/plans/YYYY-MM-DD-[feature]-plan.md` using the
 
 ---
 
-## 4. Subagent Implementation Review Gate (Mandatory Pre-Release Audit)
+## 4. Subagent Implementation Review Gate (`/flow-code-review`)
 
 When all tasks in the plan are marked complete:
 
@@ -143,15 +143,11 @@ cargo test
 go test ./...
 ```
 
-### Step 2: Dispatch Independent Subagent Reviewer
-Invoke an independent subagent (`invoke_subagent`) to perform an adversarial review of the branch diff:
-- **TypeName**: `"self"`
-- **Role**: `"Implementation Reviewer"`
-- **Prompt**:
-  > *"Perform an adversarial review of `git diff <base-branch>...HEAD` against the approved specification (`docs/specs/`) and plan (`docs/plans/`). Verify: 1. Spec & acceptance criteria conformance (zero missed criteria). 2. Code quality, security, and defensive error handling. 3. Test assertion rigor (real behavioral checks, zero trivial assertions). 4. Zero YAGNI bloat or unrequested scope. Output clear APPROVE or REVISION REQUESTED with line-by-line findings."*
+### Step 2: Dispatch Independent Subagent Reviewer via `/flow-code-review`
+Activate **[`/flow-code-review`](../flow-code-review/SKILL.md)** to dispatch an independent subagent reviewer (`invoke_subagent` with `TypeName: "self"`, `Role: "Implementation Code Reviewer"`) using `flow-code-review/references/reviewer-prompt.md`.
 
 ### Step 3: Resolution Loop
-- If the reviewer requests changes: resolve findings via strict Red-Green-Refactor cycles until approved.
+- If the reviewer requests changes (`REVISION REQUIRED`): resolve findings via strict Red-Green-Refactor cycles until approved.
 
 ---
 

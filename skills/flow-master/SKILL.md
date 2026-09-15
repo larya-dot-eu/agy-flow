@@ -55,6 +55,11 @@ The master orchestrator governing the complete 10-phase engineering lifecycle, c
                               (Red-Green-Refactor)
                                        │
                                        ▼
+                                  Phase 07.5:
+                               /flow-code-review
+                             (resources/code-review)
+                                       │
+                                       ▼
                                   Phase 08-10:
                                  /flow-release
                         (Verify, Context Sync, Release)
@@ -74,6 +79,7 @@ All lifecycle skills load, follow, and preserve the canonical section anchors fr
 | :--- | :--- | :--- | :--- | :--- |
 | **`resources/spec.md.template`** | `/flow-spec` (Phase 3) | **Mandatory** for Architectural tasks | **Why**: Guarantees RFC 2119 rigor, quantitative SLAs, and runnable type schemas.<br>**When**: Writing technical specifications before planning. | Read template $\rightarrow$ populate sections preserving anchors $\rightarrow$ write to `docs/specs/YYYY-MM-DD-[feature]-spec.md`. |
 | **`resources/plan.md.template`** | `/flow-plan` (Phase 4) | **Mandatory** for Plan authoring | **Why**: Enforces Pre-Flight Architecture Audit, task right-sizing, explicit `Consumes`/`Produces` interface signatures, and zero placeholders.<br>**When**: Authoring test-first implementation plan. | Read template $\rightarrow$ generate bite-sized tasks (under 10 minutes) $\rightarrow$ write to `docs/plans/YYYY-MM-DD-[feature]-plan.md`. |
+| **`resources/code-review.md.template`** | `/flow-code-review` (Phase 7.5) | **Mandatory** for Code Review | **Why**: Enforces calibrated adversarial inspection across 5 dimensions (Spec ACs, Quality, Security, Tests, YAGNI).<br>**When**: Reviewing working branch before release. | Read template $\rightarrow$ populate scorecard $\rightarrow$ write to `docs/plans/.tmp/code-review-[feature].md`. |
 | **`resources/context-module.md.template`** | `/flow-brainstorm` (Path D)<br>`/flow-release` (Phase 9)<br>`/flow-architect` | **Mandatory** for Mapped Subsystems | **Why**: Eliminates 20%–30% session token waste; stores living contracts, APIs, dependencies, and state invariants.<br>**When**: During brownfield onboarding or when a subsystem is created/updated. | Read template $\rightarrow$ document module contracts $\rightarrow$ write to `docs/context/[module].md`. |
 | **`resources/GEMINI.md.template`** | `/flow-brainstorm` (Path D)<br>`/flow` (Master) | **Mandatory** for Project Bootstrap | **Why**: Establishes tech stack, frequent commands, directives, and the `Context Routing Map`.<br>**When**: During initial repository onboarding or bootstrap. | Read template $\rightarrow$ customize commands & map $\rightarrow$ write to `./GEMINI.md`. |
 
@@ -102,6 +108,7 @@ Before taking any code modification action or proposing unvetted solutions:
    - Implementation plan authoring $\rightarrow$ `/flow-plan`
    - Adversarial review $\rightarrow$ `/flow-review`
    - TDD implementation $\rightarrow$ `/flow-tdd`
+   - Adversarial code review $\rightarrow$ `/flow-code-review`
    - Post-implementation & Release $\rightarrow$ `/flow-release`
    - Distributed architecture $\rightarrow$ `/flow-architect`
    - Architectural decisions $\rightarrow$ `/flow-adr`

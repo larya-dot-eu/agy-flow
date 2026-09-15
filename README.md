@@ -45,7 +45,9 @@ graph TD
     Loopback -->|Task Flaw / YAGNI Bloat| Plan
     
     Review -->|Hard Gate 3: Approved| TDD[Phase 06-07: /flow-tdd<br/>Branch Isolation & Red-Green-Refactor]
-    TDD --> Release[Phase 08-10: /flow-release<br/>Full Verification, Diff-to-Context Sync & Safe Release]
+    TDD --> CodeReview[Phase 07.5: /flow-code-review<br/>Adversarial Subagent Diff & Test Audit]
+    CodeReview -->|Blocker Found| TDD
+    CodeReview -->|Hard Gate 4: Approved| Release[Phase 08-10: /flow-release<br/>Full Verification, Diff-to-Context Sync & Safe Release]
     Release --> Done([Lifecycle Complete & Ready to Merge])
 ```
 
@@ -56,7 +58,7 @@ graph TD
 Choose the installation method that best fits your workflow:
 
 ### Option 1: 1-Command Universal Installer (Recommended)
-Deploys all 11 skills, canonical templates, deterministic lifecycle hooks, and prime directives directly into `~/.gemini/config/`:
+Deploys all 12 skills, canonical templates, deterministic lifecycle hooks, and prime directives directly into `~/.gemini/config/`:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/larya-dot-eu/agy-flow/main/install-skills.sh | bash
@@ -128,6 +130,7 @@ To prevent documentation drift and agent amnesia with mathematical certainty:
 | **`/flow-plan`** | Phase 04: Plan Writing | `docs/plans/YYYY-MM-DD-[feature]-plan.md` | **5 Adversarial Questions**, bite-sized tasks (2–5 min), zero placeholders |
 | **`/flow-review`** | Phase 05: Adversarial Review | Adversarial Review Scorecard | **Independent Subagent Auditor** (`invoke_subagent: self`), YAGNI Simplicity Audit |
 | **`/flow-tdd`** | Phase 06–07: TDD Implementation | Verified code + passing test suite | **"Code before test = Delete & Restart"**, isolated branch |
+| **`/flow-code-review`** | Phase 07.5: Adversarial Code Review | Code Review Scorecard (`docs/plans/.tmp/`) | **Independent Subagent Reviewer** (`invoke_subagent: self`), Spec & Security checks |
 | **`/flow-release`** | Phase 08–10: Verification & Release | Release report & PR summary | **Full suite verification**, Diff-to-Context sync, `docs/adr/` sync, SemVer changelog |
 | **`/flow-architect`** | Distributed Architecture Specialist | Architectural Scorecards & Mermaid Models | Clean/Hexagonal architecture, DDD bounded contexts, Sagas, CQRS |
 | **`/flow-adr`** | Architecture Decision Records | `docs/adr/NNNN-[title].md` & `README.md` | Standard MADR, Y-Statement & RFC formats, lifecycle tracking |

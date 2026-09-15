@@ -136,6 +136,7 @@ graph TD
 | **`/flow-plan`** | When authoring bite-sized, test-backed implementation tasks. | `docs/plans/YYYY-MM-DD-[feature]-plan.md` |
 | **`/flow-review`** | When red-teaming specifications and plans before coding. | Adversarial Review Scorecard. |
 | **`/flow-tdd`** | When implementing tasks with test-first scaffolding. | Verified code + passing test suite. |
+| **`/flow-code-review`**| When performing adversarial code review before release. | Code Review Scorecard (`docs/plans/.tmp/`). |
 | **`/flow-release`** | When verifying, syncing living documentation, and releasing. | Release report + synchronized `docs/context/`. |
 | **`/flow-architect`** | When designing distributed systems, CQRS, Sagas, or Clean Architecture. | Component topology diagrams & DDD boundary scorecards. |
 | **`/flow-adr`** | When choosing databases, auth providers, brokers, or frameworks. | `docs/adr/NNNN-[title].md` & master index `docs/adr/README.md`. |
