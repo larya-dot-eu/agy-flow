@@ -162,7 +162,7 @@ class TestResourceAndReferenceValidator(unittest.TestCase):
             self.assertTrue(any("Referenced resource missing" in e for e in errors))
 
 class TestInventoryAndPermissionsValidator(unittest.TestCase):
-    def test_repo_inventory_matches_12_skills(self):
+    def test_repo_inventory_matches_13_skills(self):
         repo_root = Path(__file__).resolve().parent.parent
         errors = validate_repo_inventory_and_permissions(repo_root)
         self.assertEqual(errors, [])
