@@ -2,50 +2,57 @@
 
 - **Date**: YYYY-MM-DD
 - **Branch**: `feature/YYYY-MM-DD-[feature]`
-- **Base Branch**: `main`
+- **Base SHA**: [BASE_SHA]
+- **Head SHA**: [HEAD_SHA]
 - **Spec Reference**: [`docs/specs/YYYY-MM-DD-[feature]-spec.md`](../specs/)
 - **Plan Reference**: [`docs/plans/YYYY-MM-DD-[feature]-plan.md`](../plans/)
-- **Status**: APPROVED | REVISION REQUIRED
 
 ---
 
-## 1. Audit Dimension Results <!-- ANCHOR: AUDIT_DIMENSIONS -->
-
-| Dimension | Result | Rationale & Findings |
-| :--- | :--- | :--- |
-| **1. Spec & AC Conformance** | `[PASS / FAIL]` | [1-to-1 match with spec acceptance criteria; zero missing requirements] |
-| **2. Code Quality & Clean Architecture** | `[PASS / FAIL]` | [Clean layering, explicit typing, proper exception hierarchy, docstrings] |
-| **3. Security & Defensive Programming** | `[PASS / FAIL]` | [Input validation, no exposed secrets, auth checks, no IDOR / injection] |
-| **4. Test Rigor & Behavioral Assertions**| `[PASS / FAIL]` | [Asserts business invariants and edge cases; zero superficial assertions] |
-| **5. YAGNI Simplicity & Scope Control**  | `[PASS / FAIL]` | [No single-use overengineering, dead code, or unrequested dependencies] |
+### Strengths <!-- ANCHOR: STRENGTHS -->
+- [Specific strength, e.g. Clean database schema with proper migrations (db.ts:15-42)]
+- [Specific strength, e.g. Comprehensive test coverage (18 tests, all edge cases)]
+- [Specific strength, e.g. Good error handling with fallbacks (summarizer.ts:85-92)]
 
 ---
 
-## 2. Blocking Defects (Require Resolution Before Release) <!-- ANCHOR: BLOCKERS -->
+### Issues <!-- ANCHOR: ISSUES -->
 
-*(Issues causing runtime bugs, security vulnerabilities, missing acceptance criteria, or architectural violations)*
+#### Critical (Must Fix)
+*(Bugs, security vulnerabilities, data loss risks, broken functionality)*
+- **[Issue Title]**
+  - **File:Line**: `path/to/file.ts:12-34`
+  - **What's wrong**: [Specific defect description]
+  - **Why it matters**: [Impact on system, security, or spec]
+  - **How to fix**: [Concrete fix instructions]
+*(If none, state: "None. Zero critical defects.")*
 
-- [File / Line]: [Specific defect description]
-  - **Why it's a blocker**: [Impact on system, security, or spec]
-  - **Required Fix**: [Exact change or test to implement]
+#### Important (Should Fix)
+*(Architecture problems, missing features, poor error handling, test gaps)*
+- **[Issue Title]**
+  - **File:Line**: `path/to/file.ts:50-65`
+  - **What's wrong**: [Specific issue]
+  - **Why it matters**: [Impact]
+  - **How to fix**: [Fix instructions]
+*(If none, state: "None.")*
 
-*(If none, output: "✅ None. Zero blocking defects.")*
+#### Minor (Nice to Have)
+*(Code style, optimization opportunities, documentation polish)*
+- **[Issue Title]**
+  - **File:Line**: `path/to/file.ts:100`
+  - **What's wrong**: [Minor improvement]
+  - **Why it matters**: [Impact]
+*(If none, state: "None.")*
 
 ---
 
-## 3. Advisory Recommendations (Non-Blocking) <!-- ANCHOR: ADVISORY -->
-
-*(Maintainability suggestions, micro-optimizations, or minor style improvements that do not block approval)*
-
-- [File / Line]: [Suggestion]
-
-*(If none, output: "None.")*
+### Recommendations <!-- ANCHOR: RECOMMENDATIONS -->
+- [Improvement 1 for code quality, architecture, or maintainability]
+- [Improvement 2]
 
 ---
 
-## 4. Final Verdict & Routing <!-- ANCHOR: VERDICT -->
+### Assessment <!-- ANCHOR: ASSESSMENT -->
 
-- **Decision**: `[APPROVED / REVISION REQUIRED]`
-- **Next Step**:
-  - If **APPROVED**: Proceed to `/flow-release` (Phase 8, 9 & 10).
-  - If **REVISION REQUIRED**: Resolve blockers using surgical Red-Green-Refactor cycles in `/flow-tdd`.
+- **Ready to merge?**: `[Yes | No | With fixes]`
+- **Reasoning**: [1–2 sentence technical assessment]
