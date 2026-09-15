@@ -3,8 +3,8 @@ name: flow-brainstorm
 description: >-
   Phase 1 & 2 of the 10-phase engineering lifecycle: Context Priming & Superpowers Exploration.
   Classifies requests (Spike / Bounded / Architectural / Brownfield Onboarding), turns vague ideas into validated designs
-  through disciplined one-question dialogue, renders native Mermaid architecture diagrams, and enforces
-  the Understanding Lock & Spec Self-Review gates. Trigger with /flow-brainstorm.
+  through disciplined one-by-one question dialogue with [Question X/Y] progress counters, renders native Mermaid architecture diagrams,
+  and enforces the Understanding Lock & Spec Self-Review gates. Trigger with /flow-brainstorm.
 risk: critical
 source: unified-superpowers
 ---
@@ -19,8 +19,8 @@ Turn raw ideas into **clear, validated designs and specifications** through stru
               ┌─────────────▼─────────────┐
               │ Classify Request Path:    │
               │  - Spike                  │
-              │  - Bounded                │
-              │  - Architectural          │
+              │  - Bounded (1-line fixes) │
+              │  - Architectural (DEFAULT)│
               │  - Brownfield Onboarding  │
               └─────────────┬─────────────┘
                             │
@@ -28,7 +28,7 @@ Turn raw ideas into **clear, validated designs and specifications** through stru
        ▼                    ▼                    ▼                     ▼
    [SPIKE]              [BOUNDED]         [ARCHITECTURAL]        [ONBOARDING]
   - 2-3 sentence probe - Context check   - Decomposition check  - 4-Stage Repo Scan
-  - Human nod          - 1-2 Qs          - Deep 1-by-1 Qs       - Discover Subsystems
+  - Human nod          - 1-2 Qs [1/X]    - Deep 1-by-1 Qs [1/X] - Discover Subsystems
   - Execute probe      - Short in-chat   - Non-functional reqs  - Generate docs/context/
   - Report findings      design          - 💡 Mandatory hook     - Build GEMINI.md map
                        - Human approval  - Understanding Lock   - Human Approval
@@ -37,8 +37,9 @@ Turn raw ideas into **clear, validated designs and specifications** through stru
 ```
 
 <HARD-GATE>
-Do NOT invoke any implementation skill, write project code, scaffold repositories, or modify system behavior while brainstorming. 
-Every path ends with your human partner explicitly approving your intent before any implementation action begins.
+1. **The 1-by-1 Question Hard Gate**: You MUST ask clarifying questions strictly ONE AT A TIME using the explicit progress prefix: `[Question 1/X]`, `[Question 2/X]`, etc.
+2. **Turn-Taking Stop Gate**: After outputting a question, you MUST STOP and END YOUR TURN IMMEDIATELY. Never ask multiple questions in a single response. Never ask a question and simultaneously propose designs or solutions.
+3. **No Implementation in Brainstorm**: You MUST NOT write project code, modify existing source files, or scaffold components during `/flow-brainstorm`.
 </HARD-GATE>
 
 ---
@@ -56,7 +57,7 @@ You operate as a **Design Facilitator and Senior Reviewer**, not an impetuous bu
 
 ## 2. Four Paths Classification
 
-Before your first question, classify the request and state it clearly so the human partner can confirm or override:
+Before your first question, classify the request and state it clearly so the human partner can confirm or override. **Default to Architectural** whenever new features, behavior changes, or public contracts are involved.
 
 ### Path A: Spike
 - **Definition**: A feasibility or discovery question (*"can we..."*, *"is it possible to..."*, *"quick probe"*).
@@ -64,12 +65,13 @@ Before your first question, classify the request and state it clearly so the hum
 - **Workflow**: Present probe plan in 2–3 sentences $\rightarrow$ get human nod $\rightarrow$ investigate cheaply $\rightarrow$ report recommendation.
 
 ### Path B: Bounded
-- **Definition**: A well-scoped change to code that already exists in this repository.
-- **Workflow**: Check context $\rightarrow$ ask 1–2 clarifying questions $\rightarrow$ present short design IN CHAT $\rightarrow$ **STOP and wait for approval** $\rightarrow$ proceed directly to implementation/TDD.
+- **Definition**: Strictly for well-scoped 1-file fixes, minor typos, or trivial maintenance on existing code.
+- **Rule**: If the request adds new functionality, alters architecture, or touches multiple components, **it is NOT Bounded — upgrade to Architectural**.
+- **Workflow**: Check context $\rightarrow$ ask 1–2 clarifying questions `[Question 1/X]` $\rightarrow$ present short design IN CHAT $\rightarrow$ **STOP and wait for approval** $\rightarrow$ hand off to `/flow-tdd`.
 
-### Path C: Architectural
-- **Definition**: New features, new subsystems, major refactorings, or alterations to public interfaces.
-- **Workflow**: Follow the full architectural design and spec process below using `flow-spec/resources/spec.md.template`.
+### Path C: Architectural (DEFAULT PATH)
+- **Definition**: Any new feature, new subsystem, refactoring, behavior modification, or contract change.
+- **Workflow**: Follow the full 5-Round dialogue process below. **MUST author a specification to `docs/specs/YYYY-MM-DD-[feature]-spec.md` using `flow-spec/resources/spec.md.template`.**
 
 ### Path D: Brownfield Onboarding Protocol
 - **Definition**: Existing or legacy repository without prior documentation or context routing map.
@@ -81,106 +83,69 @@ Before your first question, classify the request and state it clearly so the hum
 
 ---
 
-## 3. Red Flags & Anti-Patterns
+## 3. The 1-by-1 Questioning Protocol (`[Question X/Y]`)
 
-| Rationalization / Thought | Reality & Rule |
-| :--- | :--- |
-| *"This is too simple to need a design."* | Simple tasks need a short in-chat design (2–3 sentences), not zero design. Approval is always required. |
-| *"I'll call it bounded and skip the spec."* | Reaching for a shortcut is proof of doubt—take the architectural path. |
-| *"It's bounded and obvious—I'll start coding while they read."* | Presenting a design and coding simultaneously violates the hard gate. Stop and wait for a clear "yes". |
-| *"I understand this kind of app, so it's bounded."* | Bounded measures the repository's existing code, not your familiarity. Greenfields are architectural. |
-| *"The spike worked, so I'll keep and commit the code."* | A spike's output is an answer. Keeping the code requires a new classified task. |
-| *"It grew, but I'm almost done—no need to re-classify."* | Hidden complexity upgrades the path immediately. Stop and announce the upgrade. |
+When refining requirements during Round 1 and Round 2:
 
----
-
-## 4. Subsystem Decomposition Protocol
-
-Before asking detailed questions on Architectural requests:
-1. **Scope Assessment**: Check if the request spans multiple independent subsystems (e.g., *Auth + Billing + Notification Engine*).
-2. **Immediate Decomposition**: If too large for a single specification, help the user decompose the initiative into ordered, decoupled sub-projects.
-3. **Sequential Execution**: Brainstorm and spec the **first sub-project** only. Each sub-project runs its own complete lifecycle cycle before moving to the next.
+1. **Estimate Question Scope**: Determine the 2–4 critical dimensions that must be clarified (e.g. Total = 3).
+2. **Strict Counter Prefix**: Every question message MUST start with the explicit counter:
+   - `### [Question 1/3]: Core Purpose & User Context`
+   - `### [Question 2/3]: Constraints & Error Handling`
+   - `### [Question 3/3]: Non-Functional Requirements & Performance`
+3. **Interactive & Multiple-Choice**: Prefer multiple-choice options or leverage Antigravity's interactive `ask_question` tool.
+4. **Immediate Turn-End**: Once the single question is presented, **STOP CALLING TOOLS AND END YOUR TURN**. Wait for the human partner's answer before asking the next question or moving to design.
 
 ---
 
-## 5. The Architectural Process (Step-by-Step)
+## 4. The Architectural Process (Step-by-Step Rounds)
 
-### Step 1: Understand Current Context & Boundaries
+### Round 1: Understand Current Context & Boundaries
 - Review existing files, documentation, recent commits, and architectural patterns.
 - Check `## Context Routing Map` in `GEMINI.md` before broad directory scanning.
-- Respect existing codebase conventions; limit refactoring to code directly touched by the goal.
+- Output: Announce classification (Path C: Architectural) and ask `[Question 1/X]` $\rightarrow$ **STOP / End Turn**.
 
-### Step 2: Understand the Idea (One Question at a Time)
-- **Rule**: Ask **one question per message**.
-- When presenting distinct alternatives, leverage Antigravity's interactive `ask_question` tool.
-- Focus on: core purpose, target users, constraints, success criteria, and explicit non-goals.
+### Round 2: Disciplined 1-by-1 Questioning Loop
+- Receive user answer $\rightarrow$ Ask next question `[Question 2/X]` $\rightarrow$ **STOP / End Turn**.
+- Clarify Non-Functional Requirements (latency SLAs, scale, failure modes, security boundaries).
+- Continue 1-by-1 until all clarifying questions are answered.
 
-### Step 3: Clarify Non-Functional Requirements (Mandatory)
-Explicitly clarify or propose defaults for:
-- Performance & latency expectations
-- Scale (users, throughput, data volume)
-- Security, privacy & authentication boundaries
-- Reliability, error recovery & observability
-- Maintenance, testing & ownership expectations
+### Round 3: Architectural Approaches & Mermaid Modeling
+- Propose **2–3 viable approaches** with explicit trade-offs and your recommended option.
+- **Render Native Visuals**: Always model the architecture, component topology, or data flow using native **Mermaid diagrams** (`mermaid`).
+- Output: Present the approaches and diagram $\rightarrow$ **STOP and ask the user to pick or refine an approach**.
 
-### Step 4: Mandatory Architectural Hook (`/flow-architect`)
-> [!IMPORTANT]
-> **Distributed & Complex Architecture Trigger**:
-> If the request involves **microservices, Event-Driven Architecture (EDA), CQRS, Sagas, Event Sourcing, Clean/Hexagonal boundaries, or polyglot persistence**, you **MUST activate [`/flow-architect`](../flow-architect/SKILL.md)** to model the component topology, bounded contexts, and failure recovery modes before finalizing the design!
+### Round 4: The Understanding Lock (Hard Gate)
+Once the approach is chosen, pause and present the Understanding Lock:
+1. **Understanding Summary**: Concise bullet points (What, Why, Who, Constraints, Non-Goals).
+2. **Explicit Assumptions List**.
+3. Ask:
+   > *"Does this accurately reflect your intent? Please confirm before I author the formal specification."*
+4. **STOP and wait for explicit human confirmation.** Do NOT write the spec until confirmed.
 
-### Step 5: Understanding Lock (Hard Gate)
-Before proposing any design, pause and output:
-1. **Understanding Summary** (a concise list of bullet points covering What, Why, Who, Constraints, Non-Goals)
-2. **Explicit Assumptions List**
-3. **Open Questions** (if any remain)
-
-Then ask:
-> *"Does this accurately reflect your intent? Please confirm or correct anything before we move to design."*
-
-**Do NOT proceed to design until explicit confirmation is received.**
-
-### Step 6: Explore Approaches with Native Visuals & Diagrams
-- Propose **2–3 viable approaches** with explicit trade-offs.
-- Lead with your recommended option and reasoning.
-- **YAGNI ruthlessly**: Strip out speculative features.
-- **Render Visual Architecture**: Use native **Mermaid diagrams** directly in the conversation.
-
-### Step 7: Present the Design Incrementally
-- Break design presentation into modular chunks of **200–300 words**.
-- After each section, verify alignment: *"Does this look right so far?"*
-- Cover: Architecture & Interfaces, Data Flow, Error & Failure Modes, Edge Cases, Test Strategy.
-
-### Step 8: Running Decision Log (Mandatory)
-Maintain a running record throughout the session:
-- **Decision Made**: Specific technical choice.
-- **Alternatives Considered**: Options rejected.
-- **Rationale**: Why the chosen option wins under current constraints.
+### Round 5: Specification Authoring & Spec Self-Review
+After the Understanding Lock is confirmed:
+1. Author the authoritative RFC 2119 specification using [`flow-spec/resources/spec.md.template`](../flow-spec/resources/spec.md.template) to:
+   `docs/specs/YYYY-MM-DD-[feature]-spec.md`
+2. **4-Point Spec Self-Review (Mandatory Inline Audit)**:
+   - [x] **Placeholder Scan**: Zero `TBD`, `TODO`, or hand-waving.
+   - [x] **Consistency**: Architecture models match API contracts exactly.
+   - [x] **Scope**: Single deliverable, appropriately bounded.
+   - [x] **Ambiguity**: Unambiguous, quantitative metrics (e.g. `p95 < 50ms`).
+3. Present the written specification link for final review:
+   > *"Spec authored and self-reviewed at `docs/specs/YYYY-MM-DD-[feature]-spec.md`. Please review and approve before we proceed to implementation planning (`/flow-plan`)."*
+4. **STOP and wait for user approval.**
 
 ---
 
-## 6. Specification Authoring & Spec Self-Review
-
-### Specification Authoring
-For Architectural paths, write the finalized design using [`resources/spec.md.template`](resources/spec.md.template) to:
-`docs/specs/YYYY-MM-DD-[feature]-spec.md`
-
-### 4-Point Spec Self-Review (Mandatory Inline Audit)
-Before presenting the specification for user sign-off, audit it against these 4 checks:
-1. **Placeholder Scan**: Eliminate any `TBD`, `TODO`, or vague requirements.
-2. **Internal Consistency**: Ensure architecture models match API contracts and requirement descriptions exactly.
-3. **Scope Check**: Verify the spec is focused on a single deliverable and not hiding an undecomposed system.
-4. **Ambiguity Check**: Resolve any requirement open to multiple interpretations; pick one and make it explicit.
-
-### User Review Gate
-Present the written spec link to the user:
-> *"Spec written and audited at `docs/specs/YYYY-MM-DD-[feature]-spec.md`. Please review it and let me know if you would like any adjustments before we proceed to implementation planning."*
-
----
-
-## 7. Exit Gates & Lifecycle Handoff
+## 5. Exit Gates & Lifecycle Handoff
 
 You may exit `/flow-brainstorm` only when:
 - **Spike**: Finding/recommendation reported; temporary probe discarded.
 - **Bounded**: In-chat design approved by user $\rightarrow$ hand off directly to `/flow-tdd`.
 - **Architectural**: Spec document written, self-reviewed, and approved by user $\rightarrow$ hand off to **`/flow-plan`** (Phase 4).
 - **Brownfield Onboarding**: Initial `docs/context/` and `GEMINI.md` router written and approved by user.
+
+<EXTREMELY-IMPORTANT>
+NEVER write project implementation code, edit production source files, or run TDD cycles inside `/flow-brainstorm`. 
+The ONLY valid path forward from brainstorming is `/flow-plan` (Phase 4) or `/flow-tdd` (Phase 6-7).
+</EXTREMELY-IMPORTANT>
