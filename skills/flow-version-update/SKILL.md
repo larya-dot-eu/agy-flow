@@ -53,11 +53,10 @@ TMP_DIR="$(mktemp -d)" && git clone --depth 1 https://github.com/larya-dot-eu/ag
 ```
 
 ### Step 3: Verify Updated Installation
-Verify that all skills, templates, and rules are intact:
+Verify that all skills and rules are intact:
 
 ```bash
 ls -la ~/.gemini/config/skills/
-ls -la ~/.gemini/config/templates/
 ls -la ~/.gemini/config/rules/
 ```
 
@@ -78,8 +77,7 @@ Upon successful deployment, output the update confirmation scorecard:
 ---
 
 ### Components Synchronized
-- [x] **Skills Suite**: All `/flow-*` skills updated in `~/.gemini/config/skills/`
-- [x] **Templates Suite**: Canonical templates updated in `~/.gemini/config/templates/`
+- [x] **Skills Suite**: All `/flow-*` skills and embedded `resources/` templates updated in `~/.gemini/config/skills/`
 - [x] **Global Directives**: Prime directives updated in `~/.gemini/config/rules/GEMINI.md`
 - [x] **Lifecycle Scripts**: `context-guard.sh` updated in `~/.gemini/config/scripts/`
 ```

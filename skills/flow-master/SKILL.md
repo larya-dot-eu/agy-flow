@@ -28,18 +28,18 @@ The master orchestrator governing the complete 10-phase engineering lifecycle, c
  (Cheap Probe)      (In-chat Design)                       │              (4-Stage Scan)
                                                            ▼                     │
                                                      Phase 01-02:                ▼
-                                                    /flow-brainstorm       [templates/context-module
-                                                     (Context/Lock)         & templates/GEMINI]
+                                                    /flow-brainstorm       [resources/context-module
+                                                     (Context/Lock)         & resources/GEMINI]
                                                            │
                                                            ▼
                                                        Phase 03:
                                                       /flow-spec
-                                              (templates/spec.md.template)
+                                              (resources/spec.md.template)
                                                            │
                                                            ▼
                                                        Phase 04:
                                                       /flow-plan
-                                              (templates/plan.md.template)
+                                              (resources/plan.md.template)
                                                            │
                                                            ▼
                                                        Phase 05:
@@ -65,7 +65,7 @@ If a task involves creative, constructive, architectural, or modification work, 
 
 ## 1. Canonical Template Master Registry
 
-All lifecycle skills load, follow, and preserve the canonical section anchors from their skill `resources/` (and top-level `templates/`):
+All lifecycle skills load, follow, and preserve the canonical section anchors from their skill `resources/`:
 
 | Template File | Associated Skill / Phase | Requirement Level | Purpose & When to Use | How to Use |
 | :--- | :--- | :--- | :--- | :--- |

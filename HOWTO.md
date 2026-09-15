@@ -68,7 +68,7 @@ graph TD
 
 ### Step 2: Specification Writing (`/flow-spec`)
 - **What the AI does**:
-  - Generates an authoritative technical specification based on [`templates/spec.md.template`](templates/spec.md.template).
+  - Generates an authoritative technical specification based on [`skills/flow-spec/resources/spec.md.template`](skills/flow-spec/resources/spec.md.template).
   - Uses RFC 2119 precision (`MUST`, `MUST NOT`), quantitative SLAs (e.g. `p95 < 50ms`), and runnable type schemas.
   - Saves to `docs/specs/YYYY-MM-DD-[feature]-spec.md`.
 - **Your Job**: Skim the specification link. Confirm to move to planning.
@@ -78,7 +78,7 @@ graph TD
 ### Step 3: Implementation Planning (`/flow-plan`)
 - **What the AI does**:
   - Runs the **5 Adversarial Questions Pre-Flight Audit** (hidden assumptions, failure modes, rollback strategy, ordering, observability).
-  - Breaks the feature down into **bite-sized 2–5 minute tasks** based on [`templates/plan.md.template`](templates/plan.md.template).
+  - Breaks the feature down into **bite-sized 2–5 minute tasks** based on [`skills/flow-plan/resources/plan.md.template`](skills/flow-plan/resources/plan.md.template).
   - Defines exact `Consumes` and `Produces` interface signatures for each task.
   - Saves to `docs/plans/YYYY-MM-DD-[feature]-plan.md`.
 - **Your Job**: Ensure tasks are bite-sized and no steps are hand-waved.

@@ -13,7 +13,7 @@ source: unified-superpowers
 
 Phase 4: Implementation Plan Writing.
 
-Translate approved specifications from [`/flow-spec`](../flow-spec/SKILL.md) into concrete, bite-sized, test-first implementation plans adhering to the canonical template at `templates/plan.md.template`.
+Translate approved specifications from [`/flow-spec`](../flow-spec/SKILL.md) into concrete, bite-sized, test-first implementation plans adhering to the canonical template at `resources/plan.md.template`.
 
 ```text
   ┌──────────────────────────────────────────────────────────────────────────┐
@@ -48,7 +48,7 @@ Translate approved specifications from [`/flow-spec`](../flow-spec/SKILL.md) int
 
 <HARD-GATE>
 Do NOT begin writing production code or modifying existing source files during Phase 4.
-The implementation plan must be authored to disk at docs/plans/YYYY-MM-DD-[feature]-plan.md using templates/plan.md.template, self-reviewed against the No-Placeholders Law, and submitted to /flow-review before any coding begins.
+The implementation plan must be authored to disk at docs/plans/YYYY-MM-DD-[feature]-plan.md using resources/plan.md.template, self-reviewed against the No-Placeholders Law, and submitted to /flow-review before any coding begins.
 </HARD-GATE>
 
 ---

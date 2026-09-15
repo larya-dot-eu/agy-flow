@@ -41,7 +41,7 @@ echo "================================================================="
 
 copy_resources() {
     local dest="$1"
-    for dir in skills templates rules; do
+    for dir in skills rules; do
         mkdir -p "${dest}/${dir}"
         cp -r "${SRC_DIR}/${dir}/"* "${dest}/${dir}/"
     done
@@ -49,7 +49,7 @@ copy_resources() {
 
 mkdir -p "${CONFIG_DIR}/scripts" "${COMPAT_DIR}"
 
-echo "[+] Copying skills, templates, rules, and scripts..."
+echo "[+] Copying skills, rules, and scripts..."
 copy_resources "${CONFIG_DIR}"
 cp -r "${SRC_DIR}/scripts/"* "${CONFIG_DIR}/scripts/"
 cp "${SRC_DIR}/hooks.json" "${CONFIG_DIR}/hooks.json"

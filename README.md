@@ -98,14 +98,14 @@ git clone https://github.com/larya-dot-eu/agy-flow.git .agents/plugins/agy-flow
 
 ---
 
-## 🧩 Canonical Templates Suite (`templates/`)
+## 🧩 Canonical Templates Suite (Skill `resources/`)
 
-`agy-flow` ships with 4 standardized, production-tested templates featuring rigid **Section Anchors** (`<!-- ANCHOR: ... -->`) for deterministic search and atomic updates:
+`agy-flow` ships with 4 standardized, production-tested templates colocated inside each skill's `resources/` directory (avoiding permission boundary issues) featuring rigid **Section Anchors** (`<!-- ANCHOR: ... -->`) for deterministic search and atomic updates:
 
-1. **[`templates/spec.md.template`](templates/spec.md.template)**: Strict RFC 2119 Specification Template (Metadata, Abstract, Terminology, Architecture, Normative Specs, Invariants, Verification Matrix, Rollback Runbook).
-2. **[`templates/plan.md.template`](templates/plan.md.template)**: Bite-Sized Implementation Plan Template (5 Adversarial Questions, File Map, Right-Sized Tasks with explicit `Consumes`/`Produces` interface signatures, TDD Steps).
-3. **[`templates/context-module.md.template`](templates/context-module.md.template)**: Living Module Memory Template (Domain Purpose, Public Contracts Table, External Dependencies/MCPs, Current State Checklists).
-4. **[`templates/GEMINI.md.template`](templates/GEMINI.md.template)**: Project Root Configuration Template (Stack, Context Routing Map, Frequent Commands, Agent Directives).
+1. **[`skills/flow-spec/resources/spec.md.template`](skills/flow-spec/resources/spec.md.template)**: Strict RFC 2119 Specification Template (Metadata, Abstract, Terminology, Architecture, Normative Specs, Invariants, Verification Matrix, Rollback Runbook).
+2. **[`skills/flow-plan/resources/plan.md.template`](skills/flow-plan/resources/plan.md.template)**: Bite-Sized Implementation Plan Template (5 Adversarial Questions, File Map, Right-Sized Tasks with explicit `Consumes`/`Produces` interface signatures, TDD Steps).
+3. **[`skills/flow-brainstorm/resources/context-module.md.template`](skills/flow-brainstorm/resources/context-module.md.template)**: Living Module Memory Template (Domain Purpose, Public Contracts Table, External Dependencies/MCPs, Current State Checklists).
+4. **[`skills/flow-brainstorm/resources/GEMINI.md.template`](skills/flow-brainstorm/resources/GEMINI.md.template)**: Project Root Configuration Template (Stack, Context Routing Map, Frequent Commands, Agent Directives).
 
 ---
 

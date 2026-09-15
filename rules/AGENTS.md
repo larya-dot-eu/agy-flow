@@ -32,9 +32,9 @@ If a task involves creative, constructive, architectural, or code modification w
 1. **The Understanding Lock Gate (Phase 1 & 2)**:
    - Before presenting design solutions or specs, you MUST pause and present the concise bullet summary, explicit assumptions, and non-goals, and wait for human confirmation.
 2. **The Specification Gate (Phase 3)**:
-   - Must be authored to `docs/specs/YYYY-MM-DD-[feature]-spec.md` using `templates/spec.md.template` with RFC 2119 language, quantitative SLAs, and runnable schemas. You MUST NOT start planning until the user explicitly approves the spec.
+   - Must be authored to `docs/specs/YYYY-MM-DD-[feature]-spec.md` using the canonical specification template (`flow-spec/resources/spec.md.template`) with RFC 2119 language, quantitative SLAs, and runnable schemas. You MUST NOT start planning until the user explicitly approves the spec.
 3. **The Implementation Plan Gate (Phase 4 & 5)**:
-   - Must be authored to `docs/plans/YYYY-MM-DD-[feature]-plan.md` using `templates/plan.md.template` with bite-sized tasks (under 10 minutes), explicit `Consumes`/`Produces` interface signatures, copy-pasteable code blocks, and zero placeholders (`TODO`/`TBD`). You MUST NOT code until the plan passes adversarial audit.
+   - Must be authored to `docs/plans/YYYY-MM-DD-[feature]-plan.md` using the canonical plan template (`flow-plan/resources/plan.md.template`) with bite-sized tasks (under 10 minutes), explicit `Consumes`/`Produces` interface signatures, copy-pasteable code blocks, and zero placeholders (`TODO`/`TBD`). You MUST NOT code until the plan passes adversarial audit.
 4. **The TDD Deletion Rule (Phase 6 & 7)**:
    - **Wrote code before test? DELETE IT. Start over with the test. No exceptions.**
    - Never declare a task complete without running the verification command and verifying green.

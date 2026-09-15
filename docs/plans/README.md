@@ -7,7 +7,7 @@ This directory stores bite-sized, test-first implementation plans authored durin
 ## Conventions & Standards
 
 - **Naming Convention**: `YYYY-MM-DD-[feature-name]-plan.md` (e.g. `2026-09-01-jwt-auth-plan.md`)
-- **Canonical Template**: [`templates/plan.md.template`](../../templates/plan.md.template)
+- **Canonical Template**: [`skills/flow-plan/resources/plan.md.template`](../../skills/flow-plan/resources/plan.md.template)
 - **Task Granularity**: Each task is broken into 2–5 minute atomic TDD steps (Red $\rightarrow$ Green $\rightarrow$ Refactor $\rightarrow$ Commit).
 - **Interface Contracts**: Each task explicitly documents its `Consumes` and `Produces` signatures.
 - **No Placeholders**: Strict prohibition against `TODO`, `TBD`, or pseudocode.

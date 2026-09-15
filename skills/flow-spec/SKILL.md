@@ -22,7 +22,7 @@ Transform validated architectural designs from [`/flow-brainstorm`](../flow-brai
                                  │
                                  ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │ Load Canonical Template: templates/spec.md.template         │
+  │ Load Canonical Template: resources/spec.md.template         │
   │  - Active Voice & RFC 2119 Normative Language               │
   │  - Quantitative SLAs (Zero Hand-Waving Adjectives)          │
   │  - Runnable Schema Encodings (Structs, Types, Models)       │
@@ -45,7 +45,7 @@ Transform validated architectural designs from [`/flow-brainstorm`](../flow-brai
 ```
 
 <HARD-GATE>
-Do NOT begin implementation planning or coding during Phase 3. A specification MUST be written to disk at docs/specs/YYYY-MM-DD-[feature]-spec.md using templates/spec.md.template, self-reviewed against the 4-point audit, and explicitly approved by the user before proceeding to /flow-plan.
+Do NOT begin implementation planning or coding during Phase 3. A specification MUST be written to disk at docs/specs/YYYY-MM-DD-[feature]-spec.md using resources/spec.md.template, self-reviewed against the 4-point audit, and explicitly approved by the user before proceeding to /flow-plan.
 </HARD-GATE>
 
 ---

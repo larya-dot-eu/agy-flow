@@ -32,7 +32,7 @@ Turn raw ideas into **clear, validated designs and specifications** through stru
   - Execute probe      - Short in-chat   - Non-functional reqs  - Generate docs/context/
   - Report findings      design          - 💡 Mandatory hook     - Build GEMINI.md map
                        - Human approval  - Understanding Lock   - Human Approval
-                       - Direct TDD      - Spec (templates/)
+                       - Direct TDD      - Spec (resources/)
                                          - Hand-off to /flow-plan
 ```
 
@@ -69,15 +69,15 @@ Before your first question, classify the request and state it clearly so the hum
 
 ### Path C: Architectural
 - **Definition**: New features, new subsystems, major refactorings, or alterations to public interfaces.
-- **Workflow**: Follow the full architectural design and spec process below using `templates/spec.md.template`.
+- **Workflow**: Follow the full architectural design and spec process below using `flow-spec/resources/spec.md.template`.
 
 ### Path D: Brownfield Onboarding Protocol
 - **Definition**: Existing or legacy repository without prior documentation or context routing map.
 - **Workflow**: Execute the 4-Stage Onboarding Recipe:
   1. **Stage 1 (Topology Probe)**: Read manifest files (`package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`), discover scripts, and inspect entry points without modifying code.
   2. **Stage 2 (Subsystem Boundaries)**: Identify core modules, data stores, background jobs, external services, and auth/billing integrations.
-  3. **Stage 3 (Context Generation)**: Author structured `docs/context/[subsystem].md` files for discovered core modules using `templates/context-module.md.template`.
-  4. **Stage 4 (Router Registration)**: Populate `GEMINI.md` with conventions, standard dev/test commands, and the `## Context Routing Map`.
+  3. **Stage 3 (Context Generation)**: Author structured `docs/context/[subsystem].md` files for discovered core modules using `resources/context-module.md.template`.
+  4. **Stage 4 (Router Registration)**: Populate `GEMINI.md` with conventions, standard dev/test commands, and the `## Context Routing Map` using `resources/GEMINI.md.template`.
 
 ---
 

@@ -19,7 +19,7 @@ CONFIG_DIR="${HOME}/.gemini/config"
 COMPAT_DIR="${HOME}/.gemini/antigravity"
 
 # Assert directories exist and are populated
-for d in skills rules templates scripts; do
+for d in skills rules scripts; do
     if [ ! -d "${CONFIG_DIR}/$d" ]; then
         echo "Test 1 Failed: Directory ${CONFIG_DIR}/$d missing"
         exit 1
@@ -49,7 +49,7 @@ mkdir -p "${HOME}/.gemini/config/plugins/agy-flow"
 ./install-skills.sh > /dev/null
 
 PLUGIN_DIR="${HOME}/.gemini/config/plugins/agy-flow"
-for d in skills rules templates; do
+for d in skills rules; do
     if [ ! -d "${PLUGIN_DIR}/$d" ]; then
         echo "Test 2 Failed: Plugin directory ${PLUGIN_DIR}/$d missing"
         exit 1
@@ -94,8 +94,8 @@ if [[ "$1" == "clone" ]]; then
     fi
 
     # Create dummy structure
-    mkdir -p "$DEST/skills" "$DEST/rules" "$DEST/templates" "$DEST/scripts"
-    touch "$DEST/skills/dummy.sh" "$DEST/rules/dummy.md" "$DEST/templates/dummy.txt" "$DEST/scripts/dummy.sh" "$DEST/hooks.json"
+    mkdir -p "$DEST/skills" "$DEST/rules" "$DEST/scripts"
+    touch "$DEST/skills/dummy.sh" "$DEST/rules/dummy.md" "$DEST/scripts/dummy.sh" "$DEST/hooks.json"
     exit 0
 fi
 echo "Unexpected git command: $@"
