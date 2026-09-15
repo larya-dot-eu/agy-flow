@@ -32,8 +32,8 @@ Turn raw ideas into **clear, validated designs and specifications** through stru
   - Execute probe      - Short in-chat   - Non-functional reqs  - Generate docs/context/
   - Report findings      design          - 💡 Mandatory hook     - Build GEMINI.md map
                        - Human approval  - Understanding Lock   - Human Approval
-                       - Direct TDD      - Spec (resources/)
-                                         - Hand-off to /flow-plan
+                       - Direct TDD      - Hand-off: /flow-spec
+                                           (Phase 03 Spec Gate)
 ```
 
 <HARD-GATE>
@@ -122,8 +122,8 @@ Once the approach is chosen, pause and present the Understanding Lock:
    > *"Does this accurately reflect your intent? Please confirm before I author the formal specification."*
 4. **STOP and wait for explicit human confirmation.** Do NOT write the spec until confirmed.
 
-### Round 5: Specification Authoring & Spec Self-Review
-After the Understanding Lock is confirmed:
+### Round 5: Specification Gate (`/flow-spec` - Phase 03)
+After the Understanding Lock is confirmed by the human partner:
 1. Author the authoritative RFC 2119 specification using [`flow-spec/resources/spec.md.template`](../flow-spec/resources/spec.md.template) to:
    `docs/specs/YYYY-MM-DD-[feature]-spec.md`
 2. **4-Point Spec Self-Review (Mandatory Inline Audit)**:
@@ -132,20 +132,22 @@ After the Understanding Lock is confirmed:
    - [x] **Scope**: Single deliverable, appropriately bounded.
    - [x] **Ambiguity**: Unambiguous, quantitative metrics (e.g. `p95 < 50ms`).
 3. Present the written specification link for final review:
-   > *"Spec authored and self-reviewed at `docs/specs/YYYY-MM-DD-[feature]-spec.md`. Please review and approve before we proceed to implementation planning (`/flow-plan`)."*
+   > *"Spec authored and self-reviewed at `docs/specs/YYYY-MM-DD-[feature]-spec.md`. Please review and approve before we proceed to Phase 4 implementation planning (`/flow-plan`)."*
 4. **STOP and wait for user approval.**
 
 ---
 
-## 5. Exit Gates & Lifecycle Handoff
+## 5. Exit Gates & Sequential Phase Handoff
 
-You may exit `/flow-brainstorm` only when:
-- **Spike**: Finding/recommendation reported; temporary probe discarded.
-- **Bounded**: In-chat design approved by user $\rightarrow$ hand off directly to `/flow-tdd`.
-- **Architectural**: Spec document written, self-reviewed, and approved by user $\rightarrow$ hand off to **`/flow-plan`** (Phase 4).
-- **Brownfield Onboarding**: Initial `docs/context/` and `GEMINI.md` router written and approved by user.
+The 10-phase engineering lifecycle strictly requires passing each gate before the next unlocks:
+1. **Brainstorming Gate (Phase 01-02)**: Complete 1-by-1 dialogue $\rightarrow$ Lock understanding.
+2. **Specification Gate (Phase 03 `/flow-spec`)**: Write spec $\rightarrow$ Self-review $\rightarrow$ **Get user sign-off**.
+3. **Planning Gate (Phase 04 `/flow-plan`)**: Author bite-sized implementation plan with exact code blocks.
+4. **Adversarial Review Gate (Phase 05 `/flow-review`)**: Dispatch subagent auditor to verify Spec + Plan.
+5. **Implementation Gate (Phase 06-07 `/flow-tdd`)**: Isolated branch TDD (Red $\rightarrow$ Green $\rightarrow$ Refactor).
+6. **Release Gate (Phase 08-10 `/flow-release`)**: Verification, living context sync, safe merge.
 
 <EXTREMELY-IMPORTANT>
 NEVER write project implementation code, edit production source files, or run TDD cycles inside `/flow-brainstorm`. 
-The ONLY valid path forward from brainstorming is `/flow-plan` (Phase 4) or `/flow-tdd` (Phase 6-7).
+Every phase must be reviewed and approved sequentially.
 </EXTREMELY-IMPORTANT>
