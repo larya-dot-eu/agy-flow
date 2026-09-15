@@ -48,6 +48,23 @@ build/
 target/
 .venv/
 venv/
+
+# agy-flow Lifecycle Artifacts (Local only - never pushed to git)
+docs/specs/*
+!docs/specs/.gitkeep
+!docs/specs/README.md
+
+docs/plans/*
+!docs/plans/.gitkeep
+!docs/plans/README.md
+
+docs/context/*
+!docs/context/.gitkeep
+!docs/context/README.md
+
+docs/adr/*
+!docs/adr/.gitkeep
+!docs/adr/README.md
 """
 
 def inspect_git_environment(workspace_root: Path, allow_git_init: bool = False, skip_git: bool = False) -> dict:
