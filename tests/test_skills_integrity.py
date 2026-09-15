@@ -152,3 +152,36 @@ def validate_skill_frontmatter(skill_dir: Path) -> list[str]:
         errors.append(f"{skill_file}: Invalid risk '{metadata['risk']}'. Must be low, medium, high, or critical.")
 
     return errors
+
+RESOURCE_REF_REGEX = re.compile(r'(?:[a-zA-Z0-9_\-]+/)?(?:resources|references)/[a-zA-Z0-9_\-\.]+')
+
+def validate_skill_resources_and_references(skill_dir: Path) -> list[str]:
+    skill_file = skill_dir / "SKILL.md"
+    if not skill_file.exists():
+        return []
+
+    content = skill_file.read_text(encoding="utf-8")
+    errors = []
+    lines = content.splitlines()
+    skills_root = skill_dir.parent
+    repo_root = skills_root.parent
+
+    for idx, line in enumerate(lines, start=1):
+        for match in RESOURCE_REF_REGEX.finditer(line):
+            rel_path = match.group(0)
+            # Resolve: 1. Relative to skill_dir, 2. Relative to skills_root, 3. Relative to repo_root
+            candidates = [
+                skill_dir / rel_path,
+                skills_root / rel_path,
+                repo_root / rel_path,
+                repo_root / "skills" / rel_path
+            ]
+            # Also check if it's a generic canonical template filename under any skill's resources
+            if not any(c.exists() for c in candidates):
+                # Search across all skills/ for resources/filename
+                base_name = Path(rel_path).name
+                found_in_any_skill = any((s / "resources" / base_name).exists() for s in skills_root.iterdir() if s.is_dir())
+                if not found_in_any_skill:
+                    errors.append(f"{skill_file}:{idx}: Referenced resource missing on disk: '{rel_path}'")
+
+    return errors

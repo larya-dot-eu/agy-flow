@@ -111,5 +111,42 @@ class TestFrontmatterValidator(unittest.TestCase):
             errors = validate_skill_frontmatter(skill_dir)
             self.assertTrue(any("does not match directory" in e for e in errors))
 
+from tests.test_skills_integrity import validate_skill_resources_and_references
+
+class TestResourceAndReferenceValidator(unittest.TestCase):
+    def test_existing_resource_link_passes(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            skills_dir = Path(tmpdir) / "skills"
+            skills_dir.mkdir()
+            skill_dir = skills_dir / "flow-test"
+            skill_dir.mkdir()
+            (skill_dir / "resources").mkdir()
+            (skill_dir / "resources" / "test.template").write_text("template")
+            (skill_dir / "SKILL.md").write_text("See `resources/test.template` for scaffold.")
+            errors = validate_skill_resources_and_references(skill_dir)
+            self.assertEqual(errors, [])
+
+    def test_cross_skill_resource_link_passes(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            skills_dir = Path(tmpdir) / "skills"
+            skills_dir.mkdir()
+            skill_a = skills_dir / "flow-a"
+            skill_a.mkdir()
+            skill_b = skills_dir / "flow-b"
+            skill_b.mkdir()
+            (skill_b / "resources").mkdir()
+            (skill_b / "resources" / "spec.md.template").write_text("template")
+            (skill_a / "SKILL.md").write_text("See `flow-b/resources/spec.md.template` for scaffold.")
+            errors = validate_skill_resources_and_references(skill_a)
+            self.assertEqual(errors, [])
+
+    def test_broken_resource_link_fails(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            skill_dir = Path(tmpdir) / "flow-test"
+            skill_dir.mkdir()
+            (skill_dir / "SKILL.md").write_text("See `resources/missing.template` for scaffold.")
+            errors = validate_skill_resources_and_references(skill_dir)
+            self.assertTrue(any("Referenced resource missing" in e for e in errors))
+
 if __name__ == "__main__":
     unittest.main()
