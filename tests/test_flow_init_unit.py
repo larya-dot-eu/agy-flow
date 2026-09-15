@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
-from scripts.flow_init import inspect_git_environment, detect_project_stack
+from scripts.flow_init import inspect_git_environment, detect_project_stack, discover_subsystems
 
 class TestGitEnvironmentInspector(unittest.TestCase):
     def test_git_detected_in_git_repo(self):
@@ -54,6 +54,17 @@ class TestStackDetector(unittest.TestCase):
             stack = detect_project_stack(root)
             self.assertIn("Rust", stack["languages"])
             self.assertEqual(stack["test_cmd"], "cargo test")
+
+class TestTopologyDetector(unittest.TestCase):
+    def test_discover_standard_subsystems(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "src" / "auth").mkdir(parents=True)
+            (root / "src" / "api").mkdir(parents=True)
+            (root / "tests").mkdir()
+            subsystems = discover_subsystems(root)
+            paths = [s[0] for s in subsystems]
+            self.assertTrue(any("src/auth" in p or "src" in p for p in paths))
 
 if __name__ == "__main__":
     unittest.main()

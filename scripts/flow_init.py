@@ -130,3 +130,30 @@ def detect_project_stack(workspace_root: Path) -> dict:
         "test_cmd": test_cmd,
         "dev_cmd": dev_cmd
     }
+
+IGNORED_DIRS = {
+    ".git", ".tmp", "node_modules", "dist", "build", "target",
+    "__pycache__", ".venv", "venv", ".idea", ".vscode", "docs"
+}
+
+def discover_subsystems(workspace_root: Path) -> list[tuple[str, str, str]]:
+    subsystems = []
+    for entry in sorted(workspace_root.iterdir()):
+        if entry.is_dir() and entry.name not in IGNORED_DIRS and not entry.name.startswith("."):
+            sub_name = entry.name
+            # Check for immediate child modules under src/ or lib/
+            valid_children = [
+                child for child in entry.iterdir()
+                if child.is_dir() and child.name not in IGNORED_DIRS and not child.name.startswith(".")
+            ]
+            if sub_name in {"src", "lib", "app", "pkg"} and valid_children:
+                for child in sorted(valid_children):
+                    module_slug = f"{sub_name}-{child.name}"
+                    subsystems.append((f"{sub_name}/{child.name}/**", f"docs/context/{module_slug}.md", f"{child.name.title()} Subsystem"))
+            else:
+                subsystems.append((f"{sub_name}/**", f"docs/context/{sub_name}.md", f"{sub_name.title()} Subsystem"))
+
+    if not subsystems:
+        subsystems.append(("src/**", "docs/context/core.md", "Core Application Logic"))
+
+    return subsystems
