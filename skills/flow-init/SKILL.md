@@ -50,19 +50,24 @@ Never overwrite existing `GEMINI.md` or living context modules without explicit 
 
 ## 2. Core Workflow & Step-by-Step Instructions
 
-1. **Step 1 (Run Initialization Engine)**:
-   Execute `scripts/flow-init.sh` (or `python3 scripts/flow-init.py`) on the target workspace:
-   ```bash
-   bash scripts/flow-init.sh --dir .
-   ```
-2. **Step 2 (Inspect Generated Artifacts)**:
-   Verify the creation of:
-   - `GEMINI.md` (Stack, Context Routing Map, Frequent Commands, Directives)
-   - `AGENTS.md` (Symlink pointing to `GEMINI.md`)
-   - `docs/context/*.md` (Initial context modules)
-   - `docs/adr/README.md` (Architecture decision records index)
-3. **Step 3 (Verify Parity & Directives)**:
-   Confirm that all discovered source folders have corresponding entries in `## Context Routing Map`.
+### Step 1: Pre-Flight Discovery Interview (In-Session Agent Mode)
+Before running the initialization engine, the AI agent MUST conduct a brief 3-point Pre-Flight Interview with the user (or confirm defaults):
+1. **Git Initialization**: Confirm whether to run `git init` if no repository exists.
+2. **Stack & Test Runner**: Confirm detected languages and primary test command.
+3. **Subsystem Scaffolding**: Confirm whether to scaffold `docs/context/*.md` modules for discovered folders.
+
+### Step 2: Execute Global Initialization Engine
+Execute the global `flow-init` command (or `bash ~/.gemini/config/scripts/flow-init.sh`) using deterministic flags matching the interview results:
+```bash
+flow-init --dir . --git-init -y
+```
+
+### Step 3: Inspect Generated Artifacts & Confirm Directives
+Verify the creation and accuracy of:
+- `GEMINI.md` (Stack, Context Routing Map, Frequent Commands, Directives)
+- `AGENTS.md` (Symlink pointing to `GEMINI.md`)
+- `docs/context/*.md` (Initial context modules if requested)
+- `docs/adr/README.md` (Architecture decision records index)
 
 ---
 

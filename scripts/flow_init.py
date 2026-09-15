@@ -216,10 +216,13 @@ def render_gemini_md(project_name: str, stack_info: dict, subsystems: list[tuple
     test_cmd = stack_info.get("test_cmd", "pytest")
     dev_cmd = stack_info.get("dev_cmd", "# Start development server")
 
-    routing_rows = "\n".join(
-        f"| `{pattern}` | [`{doc}`]({doc}) | {desc} |"
-        for pattern, doc, desc in subsystems
-    )
+    if subsystems:
+        routing_rows = "\n".join(
+            f"| `{pattern}` | [`{doc}`]({doc}) | {desc} |"
+            for pattern, doc, desc in subsystems
+        )
+    else:
+        routing_rows = "| *(unmapped)* | `docs/context/` | No custom subsystem routing mapped |"
 
     return f"""# {project_name} - Workspace Directives
 
@@ -361,14 +364,16 @@ def run_flow_init(argv: list[str] | None = None) -> int:
     print(f" Target: {workspace_root}")
     print("=" * 65)
 
+    is_interactive = sys.stdin.isatty() and not args.yes
+
     # 1. Git probe
     allow_git = args.git_init
-    if not args.no_git and not (workspace_root / ".git").exists() and not args.yes:
+    if not args.git_init and not args.no_git and not (workspace_root / ".git").exists() and is_interactive:
         try:
-            ans = input("No git repository detected. Initialize git in this directory? (y/N): ").strip().lower()
-            if ans in {"y", "yes"}:
+            ans = input("No git repository detected. Initialize git? [Y/n]: ").strip().lower()
+            if ans in {"", "y", "yes"}:
                 allow_git = True
-        except EOFError:
+        except (EOFError, KeyboardInterrupt):
             pass
 
     git_info = inspect_git_environment(workspace_root, allow_git_init=allow_git, skip_git=args.no_git)
@@ -387,11 +392,35 @@ def run_flow_init(argv: list[str] | None = None) -> int:
 
     # 2. Stack probe
     stack_info = detect_project_stack(workspace_root)
+    if is_interactive:
+        langs_display = ", ".join(stack_info["languages"])
+        test_display = stack_info["test_cmd"]
+        try:
+            prompt_stack = input(f"Detected stack: {langs_display} (Test: {test_display}). Accept? [Y/n]: ").strip().lower()
+            if prompt_stack in {"n", "no"}:
+                custom_langs = input("Custom languages (comma-separated, default: Generic): ").strip()
+                if custom_langs:
+                    stack_info["languages"] = [lang.strip() for lang in custom_langs.split(",") if lang.strip()]
+                else:
+                    stack_info["languages"] = ["Generic"]
+                custom_test = input("Primary test command (default: echo 'No automated tests configured'): ").strip()
+                stack_info["test_cmd"] = custom_test if custom_test else "echo 'No automated tests configured'"
+        except (EOFError, KeyboardInterrupt):
+            pass
+
     print(f"  [+] Detected Stack: {', '.join(stack_info['languages'])}")
     print(f"  [+] Discovered Test Command: {stack_info['test_cmd']}")
 
     # 3. Topology probe
     subsystems = discover_subsystems(workspace_root)
+    if is_interactive:
+        try:
+            prompt_sub = input(f"Discovered {len(subsystems)} subsystems for Context Routing. Scaffold context modules? [Y/n]: ").strip().lower()
+            if prompt_sub in {"n", "no"}:
+                subsystems = []
+        except (EOFError, KeyboardInterrupt):
+            pass
+
     print(f"  [+] Discovered {len(subsystems)} subsystem boundaries for Context Routing")
 
     # 4. Scaffolding

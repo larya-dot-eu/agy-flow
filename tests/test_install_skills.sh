@@ -40,6 +40,22 @@ if [ ! -L "${COMPAT_DIR}/skills" ] || [ "$(readlink "${COMPAT_DIR}/skills")" != 
     echo "Test 1 Failed: Symlink ${COMPAT_DIR}/skills incorrect or missing"
     exit 1
 fi
+if [ ! -L "${HOME}/.local/bin/flow-init" ] || [ "$(readlink "${HOME}/.local/bin/flow-init")" != "${CONFIG_DIR}/scripts/flow-init.sh" ]; then
+    echo "Test 1 Failed: Symlink ${HOME}/.local/bin/flow-init incorrect or missing"
+    exit 1
+fi
+if [ ! -x "${HOME}/.local/bin/flow-init" ]; then
+    echo "Test 1 Failed: ${HOME}/.local/bin/flow-init is not executable"
+    exit 1
+fi
+
+# Test executing directly via the symlink
+mkdir -p "$TEST_DIR/sample_run"
+"${HOME}/.local/bin/flow-init" --dir "$TEST_DIR/sample_run" --yes --no-git > /dev/null
+if [ ! -f "$TEST_DIR/sample_run/GEMINI.md" ]; then
+    echo "Test 1 Failed: Running ~/.local/bin/flow-init failed to create GEMINI.md"
+    exit 1
+fi
 echo "Scenario 1 Passed: Local execution completed successfully."
 
 echo "Scenario 2: Global Plugin Sync"
