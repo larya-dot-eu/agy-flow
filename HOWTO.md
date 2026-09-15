@@ -17,27 +17,36 @@ When using AI coding assistants without a framework, four major problems usually
 
 ---
 
-## 🚦 2. The 4 Task Types: How Every Task Begins
+## 🚦 2. Task Ingestion & Socratic Routing
 
-Whenever you give Antigravity a task, `agy-flow` automatically classifies it into one of **4 Paths**:
+Whenever you give Antigravity a task, `agy-flow` prevents premature assumptions by executing disciplined context priming and Socratic dialogue:
 
 ```text
                ┌─────────────────────────────────────────────────┐
                │ You type a prompt or start a task in Antigravity│
                └────────────────────────┬────────────────────────┘
                                         │
-        ┌───────────────────┬───────────┴───────────┬───────────────────┐
-        ▼                   ▼                       ▼                   ▼
-    [Path A: SPIKE]    [Path B: BOUNDED]     [Path C: ARCHITECTURAL] [Path D: ONBOARDING]
-    "Can we use X?"    "Fix a small bug or   "Build a new feature,   "First time running
-    "Is X possible?"    add a small flag"     endpoint or refactor"   in this repository"
+        ┌───────────────────────────────┼───────────────────────────────┐
+        ▼                               ▼                               ▼
+ [Path A: SPIKE]             [STANDARD ENGINEERING]             [Path D: ONBOARDING]
+ "Can we use X?"                        │                       "First time running
+ "Is X possible?"                       ▼                        in this repository"
+                                  Phase 01-02:
+                                /flow-brainstorm
+                            (1-by-1 Questions & Lock)
+                                        │
+                       ┌────────────────┴────────────────┐
+                       ▼                                 ▼
+              [Path B: BOUNDED]             [Path C: ARCHITECTURAL (DEFAULT)]
+              "Trivial 1-file fix,          "Build a new feature, endpoint,
+               confirmed in Lock"            major refactoring, or API change"
 ```
 
 | Path | When it Triggers | What the AI Does | What You Do |
 | :--- | :--- | :--- | :--- |
 | **Path A: Spike** | Exploratory / discovery questions (*"Can we integrate Stripe?"*) | Runs a quick, throwaway investigation without keeping code. | Read the AI's findings and decide if you want to build it. |
-| **Path B: Bounded** | Localized bugfix or small tweak to existing code. | Proposes a short 2–3 sentence design directly in chat. | Type `"looks good"` $\rightarrow$ AI writes a test and implements the fix. |
-| **Path C: Architectural** | New features, new endpoints, major refactoring. | Enforces the full **10-Phase Lifecycle** (Spec $\rightarrow$ Plan $\rightarrow$ Review $\rightarrow$ TDD $\rightarrow$ Release). | Review gates at key milestones (Spec, Plan, Release). |
+| **Path B: Bounded** | Trivial 1-file typo or maintenance change (confirmed in Lock). | Proposes short in-chat design $\rightarrow$ skips formal spec with human approval. | Type `"looks good"` $\rightarrow$ AI implements directly via `/flow-tdd`. |
+| **Path C: Architectural (DEFAULT)** | New features, new endpoints, contracts, refactoring. | Enforces the full **10-Phase Lifecycle** (Spec $\rightarrow$ Plan $\rightarrow$ Review $\rightarrow$ TDD $\rightarrow$ Release). | Review gates at key milestones (Spec, Plan, Release). |
 | **Path D: Onboarding** | First time using `agy-flow` on an existing codebase. | Scans project structure and creates living module memory (`docs/context/`). | Approve the generated Context Routing Map in `GEMINI.md`. |
 
 ---
@@ -59,10 +68,10 @@ graph TD
 
 ### Step 1: Brainstorming & The Understanding Lock (`/flow-brainstorm`)
 - **What the AI does**:
-  - Asks you **one clarifying question at a time** about requirements, edge cases, and non-goals.
-  - Presents **2–3 architecture approaches** with native Mermaid diagrams.
-  - Presents the **Understanding Lock**: a 5–7 bullet summary of what will be built, explicit assumptions, and non-goals.
-- **Your Job**: Confirm with *"Yes, that reflects my intent"* or make adjustments. The AI **cannot code** until you approve this gate.
+  - Asks clarifying questions **strictly one at a time** using `### [Question X/Y]` progress counters and stops after each question.
+  - Proposes **2–3 architecture approaches** with native Mermaid diagrams.
+  - Formulates the **Understanding Lock**: a concise summary of what will be built, explicit assumptions, non-goals, and confirmed scope (Bounded vs Architectural).
+- **Your Job**: Answer questions one by one. Confirm the Understanding Lock with *"Yes, that reflects my intent"*. The AI **cannot code or write specs** until you approve this gate.
 
 ---
 
@@ -96,13 +105,14 @@ graph TD
 
 ### Step 5: Test-Driven Development Implementation (`/flow-tdd`)
 - **What the AI does**:
-  - Creates an isolated feature branch (`feature/YYYY-MM-DD-[feature]`).
+  - Creates an isolated feature branch (`feature/YYYY-MM-DD-[feature]`) and initializes plan status to `In Implementation`.
   - Executes task-by-task using strict **Red-Green-Refactor cycles**:
     1. Writes the failing test (Red).
     2. Runs test command to confirm expected failure.
     3. Writes minimal implementation code (Green).
     4. Runs test command to confirm it passes.
-    5. Commits atomically.
+    5. Commits atomically and marks task complete (`- [x]`) in `docs/plans/`.
+  - **Plan Lifecycle Automation**: Upon 100% green verification, updates the plan status to `Implemented & Tested` and commits the plan artifact before handing off to `/flow-release`.
   - **The Golden Rule**: *If code was written before the test, the AI deletes it and starts over with the test.*
 
 ---
