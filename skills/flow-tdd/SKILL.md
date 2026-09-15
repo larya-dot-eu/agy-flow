@@ -45,10 +45,19 @@ Execute the approved implementation plan from [`/flow-plan`](../flow-plan/SKILL.
                                  │
                                  ▼
   ┌─────────────────────────────────────────────────────────────┐
-  │ Step 3: All Tasks Complete & Verified Green                 │
+  │ Step 3: Subagent Implementation Review Gate                 │
+  │   - Run full test suite & linters (100% green)              │
+  │   - invoke_subagent (TypeName: "self", Role: "Reviewer")    │
+  │   - Audit diff: Spec Conformance, Code Quality, Test Rigor  │
+  │   - If issues found: Fix via Red-Green-Refactor cycle       │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Step 4: Plan Completion & Handoff to /flow-release          │
   │   - Update docs/plans/ status: 'Implemented & Tested'       │
   │   - Commit updated plan artifact                            │
-  │   - Handoff to /flow-release (Phase 08-10)                  │
+  │   - Transition to /flow-release (Phase 08-10)               │
   └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -120,18 +129,36 @@ Execute each task defined in `docs/plans/YYYY-MM-DD-[feature]-plan.md` using the
 
 ---
 
-## 4. Exit Gate & Transition to Phase 8, 9 & 10
+## 4. Subagent Implementation Review Gate (Mandatory Pre-Release Audit)
 
 When all tasks in the plan are marked complete:
-1. **Run Full Verification Battery**:
-   ```bash
-   # Run full project test suite and linters
-   pytest
-   npm test
-   cargo test
-   go test ./...
-   ```
-2. **Update Plan Artifact Status & Checkboxes**:
+
+### Step 1: Run Full Verification Battery
+Confirm the test suite and static analysis pass cleanly:
+```bash
+# Run full project test suite and linters
+pytest
+npm test
+cargo test
+go test ./...
+```
+
+### Step 2: Dispatch Independent Subagent Reviewer
+Invoke an independent subagent (`invoke_subagent`) to perform an adversarial review of the branch diff:
+- **TypeName**: `"self"`
+- **Role**: `"Implementation Reviewer"`
+- **Prompt**:
+  > *"Perform an adversarial review of `git diff <base-branch>...HEAD` against the approved specification (`docs/specs/`) and plan (`docs/plans/`). Verify: 1. Spec & acceptance criteria conformance (zero missed criteria). 2. Code quality, security, and defensive error handling. 3. Test assertion rigor (real behavioral checks, zero trivial assertions). 4. Zero YAGNI bloat or unrequested scope. Output clear APPROVE or REVISION REQUESTED with line-by-line findings."*
+
+### Step 3: Resolution Loop
+- If the reviewer requests changes: resolve findings via strict Red-Green-Refactor cycles until approved.
+
+---
+
+## 5. Plan Completion & Handoff to Phase 8, 9 & 10
+
+After passing the subagent implementation review:
+1. **Update Plan Artifact Status & Checkboxes**:
    - Verify all task checkboxes in `docs/plans/YYYY-MM-DD-[feature]-plan.md` are marked complete (`- [x]`).
    - Update the header in `docs/plans/YYYY-MM-DD-[feature]-plan.md` to:
      ```markdown
@@ -142,4 +169,4 @@ When all tasks in the plan are marked complete:
      git add docs/plans/
      git commit -m "docs(plan): mark implementation plan as Implemented & Tested"
      ```
-3. **Transition**: Transition directly to **[`/flow-release`](../flow-release/SKILL.md)** (Phase 8, 9 & 10).
+2. **Transition**: Transition directly to **[`/flow-release`](../flow-release/SKILL.md)** (Phase 8, 9 & 10).
