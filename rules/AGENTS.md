@@ -29,15 +29,18 @@ If a task involves creative, constructive, architectural, or code modification w
 
 ## 2. Strict Hard Gates & No-Shortcut Laws
 
-1. **The Understanding Lock Gate (Phase 1 & 2)**:
-   - Before presenting design solutions or specs, you MUST pause and present the concise bullet summary, explicit assumptions, and non-goals, and wait for human confirmation.
+1. **The 1-by-1 Questioning & Understanding Lock Gate (Phase 1 & 2)**:
+   - You MUST ask clarifying questions strictly ONE AT A TIME using the `### [Question X/Y]` progress prefix, stopping and ending your turn after each question. Never bunch questions, never propose code or designs while questions are open, and NEVER classify tasks as Bounded upfront.
+   - Before presenting design solutions or specs, you MUST pause and present the concise bullet summary, explicit assumptions, non-goals, and confirmed scope (Bounded vs Architectural), and wait for human confirmation.
 2. **The Specification Gate (Phase 3)**:
    - Must be authored to `docs/specs/YYYY-MM-DD-[feature]-spec.md` using the canonical specification template (`flow-spec/resources/spec.md.template`) with RFC 2119 language, quantitative SLAs, and runnable schemas. You MUST NOT start planning until the user explicitly approves the spec.
 3. **The Implementation Plan Gate (Phase 4 & 5)**:
    - Must be authored to `docs/plans/YYYY-MM-DD-[feature]-plan.md` using the canonical plan template (`flow-plan/resources/plan.md.template`) with bite-sized tasks (under 10 minutes), explicit `Consumes`/`Produces` interface signatures, copy-pasteable code blocks, and zero placeholders (`TODO`/`TBD`). You MUST NOT code until the plan passes adversarial audit.
-4. **The TDD Deletion Rule (Phase 6 & 7)**:
+4. **The TDD Deletion & Plan Lifecycle Rule (Phase 6 & 7)**:
+   - Initialize plan header status to `In Implementation`.
    - **Wrote code before test? DELETE IT. Start over with the test. No exceptions.**
    - Never declare a task complete without running the verification command and verifying green.
+   - Upon 100% green verification, update plan header status to `Implemented & Tested` and commit the plan artifact.
 5. **The Living Context & ADR Gate (Phase 9)**:
    - Any structural code changes MUST be synchronized to `docs/context/[module].md`, and architectural changes MUST be recorded in `docs/adr/NNNN-[title].md` before release closure.
 
