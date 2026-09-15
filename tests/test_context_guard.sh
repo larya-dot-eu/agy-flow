@@ -136,6 +136,16 @@ OUTPUT12=$(./scripts/context-guard.sh --check-stop)
 echo "$OUTPUT12" | grep -q '"decision": "continue"' || { echo "Test 12 Failed! Fallback to .agents/AGENTS.md not respected. Output was: $OUTPUT12"; exit 1; }
 echo "Scenario 10 Passed: Fallback to .agents/AGENTS.md works."
 
+echo "Scenario 11: Clean working tree triggers early allow exit"
+git add .
+git commit -m "clean tree" -q || true
+OUTPUT13=$(./scripts/context-guard.sh --check-stop)
+if [ "$OUTPUT13" != "{}" ]; then
+  echo "Test 11 Failed! Output was: $OUTPUT13"
+  exit 1
+fi
+echo "Scenario 11 Passed: Clean working tree allowed."
+
 # Cleanup
 rm -rf "$TEST_DIR"
 echo "All context guard tests passed successfully!"
