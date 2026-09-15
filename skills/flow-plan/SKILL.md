@@ -32,7 +32,7 @@ Translate approved specifications from [`/flow-spec`](../flow-spec/SKILL.md) int
   ┌──────────────────────────────────────────────────────────────────────────┐
   │ Author Plan: docs/plans/YYYY-MM-DD-[feature]-plan.md                     │
   │  - Zero-Context Mental Model ("Zero Context / Questionable Taste")       │
-  │  - Standardized Section Anchors (<!-- SECTION: ... -->)                  │
+  │  - Standardized Section Anchors (<!-- ANCHOR: ... -->)                   │
   │  - Task Right-Sizing (Smallest unit carrying independent review gate)    │
   │  - Absolute "No Placeholders" Law (Actual code blocks, zero TBDs)        │
   │  - Bite-Sized Atomic Tasks (under 10 minutes: Red -> Green -> Commit)    │
@@ -103,7 +103,7 @@ Every task step must contain the **exact, complete code** and **exact commands**
 
 ## 5. Canonical Plan Template Reference
 
-Plans **MUST** adhere to [`resources/plan.md.template`](resources/plan.md.template) and maintain standardized **Section Anchors** (`<!-- SECTION: ... -->`).
+Plans **MUST** adhere to [`resources/plan.md.template`](resources/plan.md.template) and maintain standardized **Section Anchors** (`<!-- ANCHOR: ... -->`).
 
 ---
 
