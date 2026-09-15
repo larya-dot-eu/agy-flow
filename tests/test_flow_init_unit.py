@@ -112,6 +112,18 @@ class TestFlowInitCLI(unittest.TestCase):
             exit_code = run_flow_init(["--dir", tmpdir, "--yes", "--name", "cli-test", "--no-git"])
             self.assertEqual(exit_code, 0)
             self.assertEqual(gemini.read_text(encoding="utf-8"), "CUSTOM CONTENT")
+            self.assertTrue((Path(tmpdir) / "AGENTS.md").exists())
+
+    def test_run_flow_init_both_exist_preserves_both(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            gemini = Path(tmpdir) / "GEMINI.md"
+            gemini.write_text("CUSTOM GEMINI", encoding="utf-8")
+            agents = Path(tmpdir) / "AGENTS.md"
+            agents.write_text("CUSTOM AGENTS", encoding="utf-8")
+            exit_code = run_flow_init(["--dir", tmpdir, "--yes", "--name", "cli-test", "--no-git"])
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(gemini.read_text(encoding="utf-8"), "CUSTOM GEMINI")
+            self.assertEqual(agents.read_text(encoding="utf-8"), "CUSTOM AGENTS")
 
 if __name__ == "__main__":
     unittest.main()
