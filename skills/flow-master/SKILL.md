@@ -19,42 +19,45 @@ The master orchestrator governing the complete 10-phase engineering lifecycle, c
                          │ Mandatory Pre-Flight Gate │ ──► Check /flow-* applicability
                          └─────────────┬─────────────┘
                                        │
-     ┌──────────────────┬──────────────┴───────────────────┬─────────────────────┐
-     ▼                  ▼                                  ▼                     ▼
- [SPIKE]            [BOUNDED]                       [ARCHITECTURAL]        [ONBOARDING]
-    │                  │                                   │                     │
-    ▼                  ▼                                   ▼                     ▼
- /flow-brainstorm   /flow-brainstorm         [Tier & Blast Radius]        /flow-brainstorm
- (Cheap Probe)      (In-chat Design)                       │              (4-Stage Scan)
-                                                           ▼                     │
-                                                     Phase 01-02:                ▼
-                                                    /flow-brainstorm       [resources/context-module
-                                                     (Context/Lock)         & resources/GEMINI]
-                                                           │
-                                                           ▼
-                                                       Phase 03:
-                                                      /flow-spec
-                                              (resources/spec.md.template)
-                                                           │
-                                                           ▼
-                                                       Phase 04:
-                                                      /flow-plan
-                                              (resources/plan.md.template)
-                                                           │
-                                                           ▼
-                                                       Phase 05:
-                                                      /flow-review
-                                                   (Adversarial Audit)
-                                                           │
-                                                           ▼
-                                                      Phase 06-07:
-                                                       /flow-tdd
-                                                  (Red-Green-Refactor)
-                                                           │
-                                                           ▼
-                                                      Phase 08-10:
-                                                      /flow-release
-                                             (Verify, Context Sync, Release)
+     ┌─────────────────────────────────┼─────────────────────────────────┐
+     ▼                                 ▼                                 ▼
+ [SPIKE]                     [STANDARD ENGINEERING]                [ONBOARDING]
+ /flow-brainstorm                      │                           /flow-brainstorm
+ (Cheap Probe)                         ▼                           (4-Stage Scan)
+                                 Phase 01-02:
+                               /flow-brainstorm
+                           (Context, 1-by-1 Qs, Lock)
+                                       │
+                      ┌────────────────┴────────────────┐
+                      ▼                                 ▼
+             [Path B: BOUNDED]             [Path C: ARCHITECTURAL (DEFAULT)]
+             (User-confirmed trivial)                   │
+                      │                                 ▼
+                      │                             Phase 03:
+                      │                            /flow-spec
+                      │                    (resources/spec.md.template)
+                      │                                 │
+                      │                                 ▼
+                      │                             Phase 04:
+                      │                            /flow-plan
+                      │                    (resources/plan.md.template)
+                      │                                 │
+                      │                                 ▼
+                      │                             Phase 05:
+                      │                            /flow-review
+                      │                        (Adversarial Audit)
+                      │                                 │
+                      └────────────────┬────────────────┘
+                                       │
+                                       ▼
+                                  Phase 06-07:
+                                   /flow-tdd
+                              (Red-Green-Refactor)
+                                       │
+                                       ▼
+                                  Phase 08-10:
+                                 /flow-release
+                        (Verify, Context Sync, Release)
 ```
 
 <EXTREMELY-IMPORTANT>
