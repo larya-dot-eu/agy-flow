@@ -43,3 +43,42 @@ def validate_code_fences(content: str, file_path: Path) -> list[str]:
         errors.append(f"{file_path}:{top_idx}: Unclosed code fence ({top_char * top_len})")
 
     return errors
+
+ANTIGRAVITY_TOOLS = {
+    "view_file", "write_to_file", "replace_file_content", "run_command",
+    "invoke_subagent", "manage_task", "define_subagent", "manage_subagents",
+    "send_message", "schedule", "generate_image", "read_url_content",
+    "search_web", "find_by_name", "grep_search", "list_dir", "ask_question"
+}
+
+DEPRECATED_OR_INVALID_TOOLS = {
+    "edit_file", "read_file", "str_replace_editor", "execute_command", "bash_command"
+}
+
+SUBAGENT_TYPENAME_REGEX = re.compile(r'"TypeName"\s*:\s*"([^"]+)"')
+TOOL_MENTION_REGEX = re.compile(r'`([a-z_]+)`\s+tool\b')
+
+def validate_tool_and_subagent_contracts(content: str, file_path: Path) -> list[str]:
+    errors = []
+    lines = content.splitlines()
+
+    for idx, line in enumerate(lines, start=1):
+        # Subagent TypeName check
+        match = SUBAGENT_TYPENAME_REGEX.search(line)
+        if match:
+            type_name = match.group(1)
+            if type_name not in {"self", "research"}:
+                errors.append(f"{file_path}:{idx}: Invalid subagent TypeName '{type_name}'. Must be 'self' or 'research'.")
+
+        # Explicit tool mention checks
+        for match in TOOL_MENTION_REGEX.finditer(line):
+            tool_name = match.group(1)
+            if tool_name in DEPRECATED_OR_INVALID_TOOLS or tool_name not in ANTIGRAVITY_TOOLS:
+                errors.append(f"{file_path}:{idx}: Invalid or unrecognized Antigravity tool name '{tool_name}'.")
+
+        # Deprecated tool direct mentions
+        for bad_tool in DEPRECATED_OR_INVALID_TOOLS:
+            if re.search(rf"\b{bad_tool}\b", line) and not re.search(rf"deprecated|invalid|banned|do not use\s+{bad_tool}", line, re.IGNORECASE):
+                errors.append(f"{file_path}:{idx}: Deprecated tool name '{bad_tool}' detected.")
+
+    return errors

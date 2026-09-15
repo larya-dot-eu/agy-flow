@@ -26,5 +26,23 @@ class TestCodeFenceValidator(unittest.TestCase):
         errors = validate_code_fences(content, Path("test.md"))
         self.assertTrue(any("Prematurely closed or colliding" in e or "Unclosed" in e for e in errors))
 
+from tests.test_skills_integrity import validate_code_fences, validate_tool_and_subagent_contracts
+
+class TestToolAndSubagentValidator(unittest.TestCase):
+    def test_valid_tool_and_subagent_pass(self):
+        content = '{"TypeName": "self", "Role": "Code Reviewer"}\nUse `view_file` tool and `run_command` tool.'
+        errors = validate_tool_and_subagent_contracts(content, Path("skills/test/SKILL.md"))
+        self.assertEqual(errors, [])
+
+    def test_invalid_subagent_typename_fails(self):
+        content = '{"TypeName": "general-purpose", "Role": "Reviewer"}'
+        errors = validate_tool_and_subagent_contracts(content, Path("skills/test/SKILL.md"))
+        self.assertTrue(any("Invalid subagent TypeName" in e for e in errors))
+
+    def test_deprecated_tool_fails(self):
+        content = 'Call the `edit_file` tool to make changes.'
+        errors = validate_tool_and_subagent_contracts(content, Path("skills/test/SKILL.md"))
+        self.assertTrue(any("Deprecated" in e or "Invalid" in e for e in errors))
+
 if __name__ == "__main__":
     unittest.main()
