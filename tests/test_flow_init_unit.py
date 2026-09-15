@@ -4,7 +4,12 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
-from scripts.flow_init import inspect_git_environment, detect_project_stack, discover_subsystems
+from scripts.flow_init import (
+    inspect_git_environment,
+    detect_project_stack,
+    discover_subsystems,
+    generate_gemini_and_agents_md,
+)
 
 class TestGitEnvironmentInspector(unittest.TestCase):
     def test_git_detected_in_git_repo(self):
@@ -65,6 +70,21 @@ class TestTopologyDetector(unittest.TestCase):
             subsystems = discover_subsystems(root)
             paths = [s[0] for s in subsystems]
             self.assertTrue(any("src/auth" in p or "src" in p for p in paths))
+
+
+class TestGeminiAndAgentsScaffolder(unittest.TestCase):
+    def test_gemini_md_and_agents_symlink_created(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            stack = {"languages": ["Python"], "build_tools": ["pytest"], "test_cmd": "pytest", "dev_cmd": None}
+            subsystems = [("src/**", "docs/context/src.md", "Source Code")]
+            gemini_path, agents_path = generate_gemini_and_agents_md(root, "test-app", stack, subsystems, force=True)
+            self.assertTrue(gemini_path.exists())
+            self.assertTrue(agents_path.exists())
+            content = gemini_path.read_text(encoding="utf-8")
+            self.assertIn("## Stack", content)
+            self.assertIn("## Context Routing Map", content)
+            self.assertIn("<!-- ANCHOR: CONTEXT_ROUTING -->", content)
 
 if __name__ == "__main__":
     unittest.main()

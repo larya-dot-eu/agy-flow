@@ -157,3 +157,66 @@ def discover_subsystems(workspace_root: Path) -> list[tuple[str, str, str]]:
         subsystems.append(("src/**", "docs/context/core.md", "Core Application Logic"))
 
     return subsystems
+
+def render_gemini_md(project_name: str, stack_info: dict, subsystems: list[tuple[str, str, str]]) -> str:
+    langs = ", ".join(stack_info.get("languages", ["Generic"]))
+    tools = ", ".join(stack_info.get("build_tools", [])) or "Standard CLI"
+    test_cmd = stack_info.get("test_cmd", "pytest")
+    dev_cmd = stack_info.get("dev_cmd", "# Start development server")
+
+    routing_rows = "\n".join(
+        f"| `{pattern}` | [`{doc}`]({doc}) | {desc} |"
+        for pattern, doc, desc in subsystems
+    )
+
+    return f"""# {project_name} - Workspace Directives
+
+## Stack <!-- ANCHOR: STACK -->
+- **Languages**: {langs}
+- **Build / Tooling**: {tools}
+- **Primary Test Runner**: `{test_cmd}`
+
+---
+
+## Context Routing Map <!-- ANCHOR: CONTEXT_ROUTING -->
+
+| Path Pattern | Context Document | Description |
+| :--- | :--- | :--- |
+{routing_rows}
+
+---
+
+## Frequent Commands <!-- ANCHOR: COMMANDS -->
+- **Test**: `{test_cmd}`
+- **Dev**: `{dev_cmd}`
+
+---
+
+## Agent Directives <!-- ANCHOR: DIRECTIVES -->
+- Follow the 10-Phase Engineering Lifecycle (`/flow`).
+- Zero-Discovery Context Routing: Read mapped `docs/context/*.md` before scanning repository files.
+- Test-Driven Development: Never write production code before tests (Red -> Green -> Refactor).
+"""
+
+def generate_gemini_and_agents_md(workspace_root: Path, project_name: str, stack_info: dict, subsystems: list[tuple[str, str, str]], force: bool = False) -> tuple[Path, Path]:
+    gemini_path = workspace_root / "GEMINI.md"
+    if gemini_path.exists() and not force:
+        raise FileExistsError(f"{gemini_path} already exists. Pass --force to overwrite.")
+
+    content = render_gemini_md(project_name, stack_info, subsystems)
+    gemini_path.write_text(content, encoding="utf-8")
+
+    agents_path = workspace_root / "AGENTS.md"
+    if agents_path.exists() or agents_path.is_symlink():
+        if force:
+            if agents_path.is_symlink() or agents_path.is_file():
+                agents_path.unlink()
+        else:
+            return gemini_path, agents_path
+
+    try:
+        agents_path.symlink_to("GEMINI.md")
+    except Exception:
+        shutil.copyfile(gemini_path, agents_path)
+
+    return gemini_path, agents_path
