@@ -4,6 +4,7 @@ set -eo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEST_DIR=$(mktemp -d)
 export HOME="$TEST_DIR/home"
+ORIGINAL_PATH="$PATH"
 
 mkdir -p "$HOME"
 cd "$TEST_DIR"
@@ -81,9 +82,9 @@ echo "Scenario 2 Passed: Plugin directory sync successful."
 echo "Scenario 3: GEMINI.md Sync"
 rm -rf "$HOME"
 mkdir -p "$HOME"
-# Create dummy GEMINI.md in source rules to be copied
+# Ensure valid rules/GEMINI.md is present
 mkdir -p rules
-touch rules/GEMINI.md
+cp "$SCRIPT_DIR/rules/GEMINI.md" rules/GEMINI.md
 ./install-skills.sh > /dev/null
 
 if [ ! -f "${HOME}/.gemini/config/GEMINI.md" ]; then
@@ -111,7 +112,8 @@ if [[ "$1" == "clone" ]]; then
 
     # Create dummy structure
     mkdir -p "$DEST/skills" "$DEST/rules" "$DEST/scripts"
-    touch "$DEST/skills/dummy.sh" "$DEST/rules/dummy.md" "$DEST/scripts/dummy.sh" "$DEST/hooks.json"
+    touch "$DEST/skills/dummy.sh" "$DEST/scripts/dummy.sh" "$DEST/hooks.json"
+    echo "# Global Antigravity Prime Directives" > "$DEST/rules/GEMINI.md"
     exit 0
 fi
 echo "Unexpected git command: $@"
@@ -162,7 +164,104 @@ if [ "$TMP_BEFORE" != "$TMP_AFTER" ]; then
     rm -rf /tmp/agy-flow-install-*
     exit 1
 fi
+export PATH="$ORIGINAL_PATH"
 echo "Scenario 5 Passed: Cleanup on failure works correctly."
+
+echo "Scenario 6: Idempotent Execution on existing GEMINI.md with Directives Marker"
+rm -rf "$HOME"
+mkdir -p "$HOME/.gemini/config"
+cat << 'EOF' > "$HOME/.gemini/config/GEMINI.md"
+# My Custom Instructions
+- Be concise.
+
+# Global Antigravity Prime Directives: The 10-Phase Engineering Lifecycle
+- Rule 1
+EOF
+BEFORE_MD5=$(md5sum "$HOME/.gemini/config/GEMINI.md" | awk '{print $1}')
+
+./install-skills.sh > /dev/null
+
+AFTER_MD5=$(md5sum "$HOME/.gemini/config/GEMINI.md" | awk '{print $1}')
+if [ "$BEFORE_MD5" != "$AFTER_MD5" ]; then
+    echo "Test 6 Failed: GEMINI.md was mutated even though Directives Marker was present"
+    exit 1
+fi
+BAK_COUNT=$(find "$HOME/.gemini/config" -name "GEMINI.md.bak.*" 2>/dev/null | wc -l)
+if [ "$BAK_COUNT" -ne 0 ]; then
+    echo "Test 6 Failed: Spurious backup file created for already-configured GEMINI.md"
+    exit 1
+fi
+echo "Scenario 6 Passed: Idempotency verified."
+
+echo "Scenario 7: Non-Interactive Piped Execution Appends with Backup"
+rm -rf "$HOME"
+mkdir -p "$HOME/.gemini/config"
+cat << 'EOF' > "$HOME/.gemini/config/GEMINI.md"
+# My Custom Instructions
+- Never use emojis.
+EOF
+
+# Piped non-interactive execution
+cat ./install-skills.sh | bash > /dev/null
+
+if ! grep -qF "# My Custom Instructions" "$HOME/.gemini/config/GEMINI.md"; then
+    echo "Test 7 Failed: Original user configuration was lost after non-interactive install"
+    exit 1
+fi
+if ! grep -qF "# Global Antigravity Prime Directives" "$HOME/.gemini/config/GEMINI.md"; then
+    echo "Test 7 Failed: agy-flow directives were not appended"
+    exit 1
+fi
+BAK_COUNT=$(find "$HOME/.gemini/config" -name "GEMINI.md.bak.*" 2>/dev/null | wc -l)
+if [ "$BAK_COUNT" -ne 1 ]; then
+    echo "Test 7 Failed: Expected 1 backup file, found $BAK_COUNT"
+    exit 1
+fi
+echo "Scenario 7 Passed: Non-interactive append with backup verified."
+
+echo "Scenario 8: Interactive Prompt Handling (Preserve, Overwrite, Append)"
+# Sub-scenario 8a: Preserve
+rm -rf "$HOME"
+mkdir -p "$HOME/.gemini/config"
+echo "# Original Setup" > "$HOME/.gemini/config/GEMINI.md"
+printf "P\n" | AGY_FORCE_INTERACTIVE=1 ./install-skills.sh > /dev/null
+if ! grep -qF "# Original Setup" "$HOME/.gemini/config/GEMINI.md" || grep -qF "# Global Antigravity Prime Directives" "$HOME/.gemini/config/GEMINI.md"; then
+    echo "Test 8a Failed: Preserve mode modified GEMINI.md"
+    exit 1
+fi
+if [ $(find "$HOME/.gemini/config" -name "GEMINI.md.bak.*" 2>/dev/null | wc -l) -ne 0 ]; then
+    echo "Test 8a Failed: Preserve mode should not create backup"
+    exit 1
+fi
+
+# Sub-scenario 8b: Overwrite
+rm -rf "$HOME"
+mkdir -p "$HOME/.gemini/config"
+echo "# Original Setup" > "$HOME/.gemini/config/GEMINI.md"
+printf "O\n" | AGY_FORCE_INTERACTIVE=1 ./install-skills.sh > /dev/null
+if grep -qF "# Original Setup" "$HOME/.gemini/config/GEMINI.md" || ! grep -qF "# Global Antigravity Prime Directives" "$HOME/.gemini/config/GEMINI.md"; then
+    echo "Test 8b Failed: Overwrite mode failed to replace GEMINI.md"
+    exit 1
+fi
+if [ $(find "$HOME/.gemini/config" -name "GEMINI.md.bak.*" 2>/dev/null | wc -l) -ne 1 ]; then
+    echo "Test 8b Failed: Overwrite mode failed to create backup"
+    exit 1
+fi
+
+# Sub-scenario 8c: Append
+rm -rf "$HOME"
+mkdir -p "$HOME/.gemini/config"
+echo "# Original Setup" > "$HOME/.gemini/config/GEMINI.md"
+printf "A\n" | AGY_FORCE_INTERACTIVE=1 ./install-skills.sh > /dev/null
+if ! grep -qF "# Original Setup" "$HOME/.gemini/config/GEMINI.md" || ! grep -qF "# Global Antigravity Prime Directives" "$HOME/.gemini/config/GEMINI.md"; then
+    echo "Test 8c Failed: Append mode failed to retain original setup or append directives"
+    exit 1
+fi
+if [ $(find "$HOME/.gemini/config" -name "GEMINI.md.bak.*" 2>/dev/null | wc -l) -ne 1 ]; then
+    echo "Test 8c Failed: Append mode failed to create backup"
+    exit 1
+fi
+echo "Scenario 8 Passed: Interactive prompt modes verified."
 
 # Cleanup
 rm -rf "$TEST_DIR"
