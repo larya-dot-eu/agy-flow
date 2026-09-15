@@ -221,22 +221,53 @@ class TestContextDocumentValidator(unittest.TestCase):
             errors = validate_context_documents(root)
             self.assertTrue(any("Unpopulated placeholder" in e for e in errors))
 
-    def test_nonexistent_file_reference_fails(self):
+    def test_missing_docs_context_dir_returns_empty(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            errors = validate_context_documents(root)
+            self.assertEqual(errors, [])
+
+    def test_docs_context_with_only_readme_returns_empty(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             docs_ctx = root / "docs" / "context"
             docs_ctx.mkdir(parents=True)
-            (root / "GEMINI.md").write_text("# Project\n## Context Routing Map\n| `scripts/**` | `docs/context/scripts.md` |\n")
-            (docs_ctx / "scripts.md").write_text(
-                "# Scripts Context\n"
-                "## 1. Purpose & Responsibility <!-- ANCHOR: PURPOSE -->\nAutomation.\n"
+            (docs_ctx / "README.md").write_text("# Context Index\n")
+            errors = validate_context_documents(root)
+            self.assertEqual(errors, [])
+
+    def test_directory_traversal_reference_fails(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs_ctx = root / "docs" / "context"
+            docs_ctx.mkdir(parents=True)
+            (docs_ctx / "security.md").write_text(
+                "# Security Context\n"
+                "## 1. Purpose & Responsibility <!-- ANCHOR: PURPOSE -->\nSecurity.\n"
                 "## 2. Public Interfaces & Contracts <!-- ANCHOR: CONTRACTS -->\n"
-                "| Interface | Type | Responsibility |\n| `scripts/nonexistent.py` | Script | Nonexistent |\n"
+                "| `scripts/../../etc/passwd` | File | Leaked |\n"
                 "## 3. Current Invariants & State <!-- ANCHOR: INVARIANTS -->\n"
                 "- [x] Invariant 1\n"
             )
             errors = validate_context_documents(root)
-            self.assertTrue(any("Referenced path missing on disk" in e for e in errors))
+            self.assertTrue(any("Directory traversal prohibited" in e for e in errors))
+
+    def test_expanded_template_placeholders_fail(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs_ctx = root / "docs" / "context"
+            docs_ctx.mkdir(parents=True)
+            (docs_ctx / "core.md").write_text(
+                "# Core Context\n"
+                "## 1. Purpose & Responsibility <!-- ANCHOR: PURPOSE -->\n"
+                "[Module / Subsystem Name] - [Short description]\n"
+                "## 2. Public Interfaces & Contracts <!-- ANCHOR: CONTRACTS -->\n"
+                "| `tests/test_unit.py` | Test | Suite |\n"
+                "## 3. Current Invariants & State <!-- ANCHOR: INVARIANTS -->\n"
+                "- [x] Invariant 1\n"
+            )
+            errors = validate_context_documents(root)
+            self.assertTrue(any("Unpopulated placeholder" in e for e in errors))
 
 if __name__ == "__main__":
     unittest.main()

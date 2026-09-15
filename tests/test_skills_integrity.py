@@ -273,8 +273,10 @@ def validate_repo_inventory_and_permissions(repo_root: Path) -> list[str]:
 
     return errors
 
-CONTEXT_PLACEHOLDER_REGEX = re.compile(r'\[(SymbolName|Core domain rule|Description)\]')
-PATH_REF_REGEX = re.compile(r'`([a-zA-Z0-9_\-\./]+(?:\.[a-zA-Z0-9]+|\.sh))`')
+CONTEXT_PLACEHOLDER_REGEX = re.compile(
+    r'\[(SymbolName|Core domain rule|Description|Module / Subsystem Name|Domain Name|YYYY-MM-DD|vX\.Y\.Z|Commit Hash|Short description|InterfaceName|ClassName|TypeName)\]'
+)
+PATH_REF_REGEX = re.compile(r'`([a-zA-Z0-9_\-\./]+)`')
 
 def validate_context_documents(repo_root: Path) -> list[str]:
     errors = []
@@ -316,8 +318,16 @@ def validate_context_documents(repo_root: Path) -> list[str]:
                 rel_path = match.group(1)
                 # Only check concrete paths belonging to project subsystems (scripts/, tests/, skills/, rules/, docs/)
                 if any(rel_path.startswith(prefix) for prefix in ("scripts/", "tests/", "skills/", "rules/", "docs/")):
-                    if "*" not in rel_path and not (repo_root / rel_path).exists():
-                        errors.append(f"{cfile}:{idx}: Referenced path missing on disk: '{rel_path}'")
+                    if "*" not in rel_path:
+                        if ".." in rel_path.split("/") or "/../" in rel_path:
+                            errors.append(f"{cfile}:{idx}: Directory traversal prohibited in referenced path: '{rel_path}'")
+                        else:
+                            try:
+                                resolved = (repo_root / rel_path).resolve()
+                                if not resolved.is_relative_to(repo_root.resolve()) or not resolved.exists():
+                                    errors.append(f"{cfile}:{idx}: Referenced path missing on disk: '{rel_path}'")
+                            except (ValueError, RuntimeError):
+                                errors.append(f"{cfile}:{idx}: Referenced path missing on disk: '{rel_path}'")
 
     return errors
 
