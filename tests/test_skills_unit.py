@@ -1,6 +1,7 @@
 # tests/test_skills_unit.py
 import unittest
 import tempfile
+import re
 from pathlib import Path
 from tests.test_skills_integrity import (
     validate_code_fences,
@@ -268,6 +269,70 @@ class TestContextDocumentValidator(unittest.TestCase):
             )
             errors = validate_context_documents(root)
             self.assertTrue(any("Unpopulated placeholder" in e for e in errors))
+
+class TestReviewDirectoryAndToolDiscipline(unittest.TestCase):
+    def setUp(self):
+        self.repo_root = Path(__file__).resolve().parent.parent
+
+    def test_flow_review_orchestrator_preflight_and_subagent_directives(self):
+        skill_path = self.repo_root / "skills" / "flow-review" / "SKILL.md"
+        prompt_path = self.repo_root / "skills" / "flow-review" / "references" / "auditor-prompt.md"
+
+        self.assertTrue(skill_path.exists(), f"Missing {skill_path}")
+        self.assertTrue(prompt_path.exists(), f"Missing {prompt_path}")
+
+        skill_text = skill_path.read_text(encoding="utf-8")
+        prompt_text = prompt_path.read_text(encoding="utf-8")
+
+        # Orchestrator pre-flight in flow-review/SKILL.md
+        self.assertIn("docs/plans/.tmp", skill_text)
+        self.assertIn("list_dir", skill_text)
+        self.assertIn("write_to_file", skill_text)
+
+        # Subagent tool discipline in prompt and SKILL.md
+        for text, source in [(skill_text, "SKILL.md"), (prompt_text, "auditor-prompt.md")]:
+            self.assertIn("write_to_file", text, f"{source} must mandate write_to_file")
+            self.assertTrue(
+                bool(re.search(r'(?:do not|must not|never|prohibit|forbid).*mkdir', text, re.IGNORECASE)),
+                f"{source} must explicitly forbid mkdir"
+            )
+            self.assertTrue(
+                bool(re.search(r'(?:do not|must not|never|prohibit|forbid).*(?:touch|bash)', text, re.IGNORECASE)),
+                f"{source} must explicitly forbid touch or bash"
+            )
+
+    def test_flow_code_review_orchestrator_preflight_and_subagent_directives(self):
+        skill_path = self.repo_root / "skills" / "flow-code-review" / "SKILL.md"
+        prompt_path = self.repo_root / "skills" / "flow-code-review" / "references" / "reviewer-prompt.md"
+
+        self.assertTrue(skill_path.exists(), f"Missing {skill_path}")
+        self.assertTrue(prompt_path.exists(), f"Missing {prompt_path}")
+
+        skill_text = skill_path.read_text(encoding="utf-8")
+        prompt_text = prompt_path.read_text(encoding="utf-8")
+
+        # Orchestrator pre-flight in flow-code-review/SKILL.md
+        self.assertIn("docs/plans/.tmp", skill_text)
+        self.assertIn("list_dir", skill_text)
+        self.assertIn("write_to_file", skill_text)
+
+        # Subagent tool discipline in prompt and SKILL.md
+        for text, source in [(skill_text, "SKILL.md"), (prompt_text, "reviewer-prompt.md")]:
+            self.assertIn("write_to_file", text, f"{source} must mandate write_to_file")
+            self.assertTrue(
+                bool(re.search(r'(?:do not|must not|never|prohibit|forbid).*mkdir', text, re.IGNORECASE)),
+                f"{source} must explicitly forbid mkdir"
+            )
+            self.assertTrue(
+                bool(re.search(r'(?:do not|must not|never|prohibit|forbid).*(?:touch|bash)', text, re.IGNORECASE)),
+                f"{source} must explicitly forbid touch or bash"
+            )
+
+    def test_gitignore_contains_tmp_exclusion(self):
+        gitignore_path = self.repo_root / ".gitignore"
+        self.assertTrue(gitignore_path.exists(), "Missing .gitignore")
+        gitignore_text = gitignore_path.read_text(encoding="utf-8")
+        self.assertIn("docs/**/.tmp/", gitignore_text, ".gitignore must retain exclusion of docs/**/.tmp/")
 
 if __name__ == "__main__":
     unittest.main()

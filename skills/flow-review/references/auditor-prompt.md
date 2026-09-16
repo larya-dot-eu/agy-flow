@@ -36,6 +36,12 @@ You are an adversarial document auditor and principal systems architect. Your mi
 
 ---
 
+### Tool & Execution Discipline
+- **Direct Output Generation**: Target directory `docs/plans/.tmp` is pre-verified and ready. You MUST write the scorecard report using the `write_to_file` tool directly.
+- **No Shell Directory Manipulation**: You MUST NOT execute shell commands (`run_command` with `mkdir`, `touch`, `bash`) to verify or create directories.
+
+---
+
 ## Review Calibration (Crucial)
 
 - **BLOCKER**: ONLY flag issues that would cause runtime failures, security vulnerabilities, implementation deadlocks, or spec divergence.
@@ -45,7 +51,7 @@ You are an adversarial document auditor and principal systems architect. Your mi
 
 ## Required Output Format
 
-Return a structured report using this exact format:
+Write the completed scorecard to `docs/plans/.tmp/plan-review-[feature].md` using this exact format:
 
 # Adversarial Review Scorecard: [Feature Name]
 

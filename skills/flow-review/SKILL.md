@@ -88,13 +88,22 @@ The auditor audits the plan by attempting to break it structurally, mechanically
 
 ## 3. Subagent Auditor Dispatch Protocol
 
+### 3.1 Pre-Flight Directory Guard (Orchestrator Step)
+
+Before dispatching the subagent, verify non-interactively that `docs/plans/.tmp` exists:
+1. Resolve `<workspace_root>/docs/plans/.tmp` and inspect using `list_dir(DirectoryPath: "<workspace_root>/docs/plans/.tmp")`.
+2. If the directory does not exist, initialize it non-interactively by calling `write_to_file(TargetFile: "<workspace_root>/docs/plans/.tmp/.placeholder", CodeContent: "", Overwrite: true)`.
+3. Do NOT execute shell commands (`mkdir`, `mkdir -p`) to create directories.
+
+### 3.2 Dispatch Protocol
+
 To guarantee objectivity, the lead orchestrator dispatches an independent subagent auditor using `invoke_subagent` with `TypeName: "self"`:
 
 ```json
 {
   "TypeName": "self",
   "Role": "Adversarial Plan Auditor",
-  "Prompt": "You are an adversarial document auditor and principal systems architect. Switch from generation mode to review mode. Your goal is to break the plan at docs/plans/YYYY-MM-DD-[feature]-plan.md, not defend it.\n\nAudit Dimensions:\n1. Mechanical Completeness: Zero placeholders (TODO/TBD). Runnable code blocks only.\n2. Traceability: 1-to-1 AC-XX mapping. No orphan tasks.\n3. Buildability: Tasks under 10 min. No missing context.\n4. YAGNI & Dead Code: Flag single-use abstractions and orphaned imports.\n5. Intermediate States & Dependencies: Are states broken between steps? Is the dependency graph valid?\n6. Absence != Confirmation: Do not trust empty greps or missing files. Verify actual source.\n7. Re-attack Risks: Break the plan's flagged 'most likely wrong' claims first.\n8. Abuse-Case Pass: Attack access control (IDOR, auth bypass, missing validation).\n9. Scale Pass: Attack peak load (missing indexes, unbounded growth, in-memory state).\n10. Reinvention Pass: Flag duplicated logic and hardcoded values.\n11. Concurrency & Rollbacks: Validate transactions, mutexes, and rollback commands.\n\nCalibration Rule:\nONLY flag issues that would cause runtime failures, security holes, implementation deadlocks, spec divergence, or architectural decay as BLOCKERS. Phrasing preferences are ADVISORY.\n\nWrite the standard Adversarial Review Scorecard to docs/plans/.tmp/plan-review-[feature].md. Do NOT output the full text in chat; just announce completion and the final Status (APPROVED | REVISION REQUIRED)."
+  "Prompt": "You are an adversarial document auditor and principal systems architect. Switch from generation mode to review mode. Your goal is to break the plan at docs/plans/YYYY-MM-DD-[feature]-plan.md, not defend it.\n\nAudit Dimensions:\n1. Mechanical Completeness: Zero placeholders (TODO/TBD). Runnable code blocks only.\n2. Traceability: 1-to-1 AC-XX mapping. No orphan tasks.\n3. Buildability: Tasks under 10 min. No missing context.\n4. YAGNI & Dead Code: Flag single-use abstractions and orphaned imports.\n5. Intermediate States & Dependencies: Are states broken between steps? Is the dependency graph valid?\n6. Absence != Confirmation: Do not trust empty greps or missing files. Verify actual source.\n7. Re-attack Risks: Break the plan's flagged 'most likely wrong' claims first.\n8. Abuse-Case Pass: Attack access control (IDOR, auth bypass, missing validation).\n9. Scale Pass: Attack peak load (missing indexes, unbounded growth, in-memory state).\n10. Reinvention Pass: Flag duplicated logic and hardcoded values.\n11. Concurrency & Rollbacks: Validate transactions, mutexes, and rollback commands.\n\nCalibration Rule:\nONLY flag issues that would cause runtime failures, security holes, implementation deadlocks, spec divergence, or architectural decay as BLOCKERS. Phrasing preferences are ADVISORY.\n\nWrite the standard Adversarial Review Scorecard to docs/plans/.tmp/plan-review-[feature].md using the write_to_file tool directly (docs/plans/.tmp is pre-created; do NOT execute shell commands like mkdir, touch, or bash to verify or create directories). Do NOT output the full text in chat; just announce completion and the final Status (APPROVED | REVISION REQUIRED)."
 }
 ```
 
