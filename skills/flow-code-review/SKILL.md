@@ -82,13 +82,22 @@ Auditors must categorize findings by actual severity, acknowledging strengths be
 
 ## 3. Subagent Auditor Dispatch Protocol
 
+### 3.1 Pre-Flight Directory Guard (Orchestrator Step)
+
+Before dispatching the reviewer subagent, verify non-interactively that `docs/plans/.tmp` exists:
+1. Resolve `<workspace_root>/docs/plans/.tmp` and inspect using `list_dir(DirectoryPath: "<workspace_root>/docs/plans/.tmp")`.
+2. If the directory does not exist, initialize it non-interactively by calling `write_to_file(TargetFile: "<workspace_root>/docs/plans/.tmp/.placeholder", CodeContent: "", Overwrite: true)`.
+3. Do NOT execute shell commands (`mkdir`, `mkdir -p`) to create directories.
+
+### 3.2 Dispatch Protocol
+
 The orchestrator dispatches an independent subagent auditor using `invoke_subagent` (`TypeName: "self"`) populated from `references/reviewer-prompt.md`:
 
 ```json
 {
   "TypeName": "self",
   "Role": "Phase 7.5 Code Reviewer",
-  "Prompt": "You are the Phase 7.5 Adversarial Code Reviewer for the Antigravity Flow engineering lifecycle. Switch from generation mode to review mode: your job is to rigorously review the completed implementation against its specification and plan, identifying defects and architectural decay before release.\n\n## Context & Inputs\n- Feature: [FEATURE_NAME]\n- Specification: docs/specs/YYYY-MM-DD-[feature]-spec.md\n- Plan: docs/plans/YYYY-MM-DD-[feature]-plan.md\n- Base Revision: [BASE_REF]\n- Head Revision: [HEAD_REF]\n\n## Inspection Commands\ngit diff --stat [BASE_REF]..[HEAD_REF]\ngit diff [BASE_REF]..[HEAD_REF]\ngit log --oneline [BASE_REF]..[HEAD_REF]\n[TEST_COMMAND]\n\n## Hard Execution Constraints\n1. Strict Read-Only Mode: Do NOT mutate the working tree, index, HEAD, or branch state.\n2. Anti-Recursion Directive: Do NOT invoke child subagents. Perform the review yourself.\n3. Evidence Before Assertions: Every issue MUST include an exact file:line reference.\n\n## The 5 Antigravity Flow Audit Dimensions\n1. Spec & AC Conformance (AC-XX)\n2. Code Quality & Clean Architecture\n3. Defensive Security & Robustness\n4. Test Assertion Rigor\n5. Production Readiness & YAGNI Simplicity\n\n## Severity Calibration\n- Critical (Must Fix): Bugs, security holes, data loss, broken contracts, missing ACs.\n- Important (Should Fix): Architecture flaws, missing error handling, test gaps.\n- Minor (Nice to Have): Code style, micro-optimizations, polish.\n\n## Output Format\nWrite the completed scorecard using skills/flow-code-review/resources/code-review.md.template to docs/plans/.tmp/code-review-[feature].md. Return Strengths, Issues (Critical / Important / Minor), Recommendations, and Assessment (Ready to merge: Yes | No | With fixes)."
+  "Prompt": "You are the Phase 7.5 Adversarial Code Reviewer for the Antigravity Flow engineering lifecycle. Switch from generation mode to review mode: your job is to rigorously review the completed implementation against its specification and plan, identifying defects and architectural decay before release.\n\n## Context & Inputs\n- Feature: [FEATURE_NAME]\n- Specification: docs/specs/YYYY-MM-DD-[feature]-spec.md\n- Plan: docs/plans/YYYY-MM-DD-[feature]-plan.md\n- Base Revision: [BASE_REF]\n- Head Revision: [HEAD_REF]\n\n## Inspection Commands\ngit diff --stat [BASE_REF]..[HEAD_REF]\ngit diff [BASE_REF]..[HEAD_REF]\ngit log --oneline [BASE_REF]..[HEAD_REF]\n[TEST_COMMAND]\n\n## Hard Execution Constraints\n1. Strict Read-Only Mode: Do NOT mutate the working tree, index, HEAD, or branch state.\n2. Anti-Recursion Directive: Do NOT invoke child subagents. Perform the review yourself.\n3. Evidence Before Assertions: Every issue MUST include an exact file:line reference.\n4. Tool Discipline: Target directory docs/plans/.tmp is pre-verified and ready. You MUST write the scorecard report using the write_to_file tool directly. You MUST NOT execute shell commands (run_command with mkdir, touch, bash) to verify or create directories.\n\n## The 5 Antigravity Flow Audit Dimensions\n1. Spec & AC Conformance (AC-XX)\n2. Code Quality & Clean Architecture\n3. Defensive Security & Robustness\n4. Test Assertion Rigor\n5. Production Readiness & YAGNI Simplicity\n\n## Severity Calibration\n- Critical (Must Fix): Bugs, security holes, data loss, broken contracts, missing ACs.\n- Important (Should Fix): Architecture flaws, missing error handling, test gaps.\n- Minor (Nice to Have): Code style, micro-optimizations, polish.\n\n## Output Format\nWrite the completed scorecard using skills/flow-code-review/resources/code-review.md.template to docs/plans/.tmp/code-review-[feature].md using the write_to_file tool directly. Return Strengths, Issues (Critical / Important / Minor), Recommendations, and Assessment (Ready to merge: Yes | No | With fixes)."
 }
 ```
 

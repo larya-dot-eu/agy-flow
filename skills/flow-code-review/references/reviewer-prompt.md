@@ -52,6 +52,7 @@ git log --oneline [BASE_REF]..[HEAD_REF]
 1. **Strict Read-Only Mode**: Do NOT mutate the working tree, index, HEAD, or branch state in any way. Never run mutating git commands (e.g. `git checkout`, `git reset`, `git commit`).
 2. **Anti-Recursion Directive**: Do NOT invoke child subagents. Perform the entire review yourself.
 3. **Evidence Before Assertions**: Every flagged issue MUST include an exact `file:line` reference and technical explanation of the failure mode.
+4. **Tool Discipline**: Target directory `docs/plans/.tmp` is pre-verified and ready. You MUST write the scorecard report using the `write_to_file` tool directly. You MUST NOT execute shell commands (`run_command` with `mkdir`, `touch`, `bash`) to verify or create directories.
 
 ### The 5 Antigravity Flow Audit Dimensions
 
