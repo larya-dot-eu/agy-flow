@@ -37,6 +37,18 @@ class TestGitEnvironmentInspector(unittest.TestCase):
             info = inspect_git_environment(root, allow_git_init=False, skip_git=True)
             self.assertFalse(info["is_git_repo"])
 
+    @patch('subprocess.run')
+    def test_git_config_exception_handling(self, mock_run):
+        mock_run.side_effect = Exception('Git command failed')
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            info = inspect_git_environment(root, allow_git_init=False, skip_git=False)
+            self.assertTrue(info['is_git_repo'])
+            self.assertIsNone(info['user_name'])
+            self.assertIsNone(info['user_email'])
+
+
 class TestStackDetector(unittest.TestCase):
     def test_detect_python_pytest(self):
         with tempfile.TemporaryDirectory() as tmpdir:
