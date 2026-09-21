@@ -55,6 +55,14 @@ class TestStackDetector(unittest.TestCase):
             self.assertIn("TypeScript / JavaScript", stack["languages"])
             self.assertEqual(stack["test_cmd"], "npm test")
 
+    def test_detect_node_invalid_package_json(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "package.json").write_text('{ invalid json', encoding="utf-8")
+            stack = detect_project_stack(root)
+            self.assertIn("TypeScript / JavaScript", stack["languages"])
+            self.assertEqual(stack["test_cmd"], "npm test")
+
     def test_detect_rust_cargo(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
