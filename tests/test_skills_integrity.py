@@ -294,28 +294,21 @@ def validate_context_documents(repo_root: Path) -> list[str]:
         content = cfile.read_text(encoding="utf-8")
         lines = content.splitlines()
 
-        # Check required anchors
         found_anchors = set()
         for idx, line in enumerate(lines, start=1):
-            match = HEADING_ANCHOR_REGEX.match(line.strip())
-            if match:
-                found_anchors.add(match.group(1))
+            # Check required anchors
+            match_anchor = HEADING_ANCHOR_REGEX.match(line.strip())
+            if match_anchor:
+                found_anchors.add(match_anchor.group(1))
 
-        missing_anchors = required_anchors - found_anchors
-        if missing_anchors:
-            for anc in sorted(missing_anchors):
-                errors.append(f"{cfile}: Missing required anchor 'ANCHOR: {anc}'")
+            # Check unpopulated placeholders
+            match_placeholder = CONTEXT_PLACEHOLDER_REGEX.search(line)
+            if match_placeholder:
+                errors.append(f"{cfile}:{idx}: Unpopulated placeholder '[{match_placeholder.group(1)}]' detected")
 
-        # Check unpopulated placeholders
-        for idx, line in enumerate(lines, start=1):
-            match = CONTEXT_PLACEHOLDER_REGEX.search(line)
-            if match:
-                errors.append(f"{cfile}:{idx}: Unpopulated placeholder '[{match.group(1)}]' detected")
-
-        # Check file references in code blocks or backticks
-        for idx, line in enumerate(lines, start=1):
-            for match in PATH_REF_REGEX.finditer(line):
-                rel_path = match.group(1)
+            # Check file references in code blocks or backticks
+            for match_path in PATH_REF_REGEX.finditer(line):
+                rel_path = match_path.group(1)
                 # Only check concrete paths belonging to project subsystems (scripts/, tests/, skills/, rules/, docs/)
                 if any(rel_path.startswith(prefix) for prefix in ("scripts/", "tests/", "skills/", "rules/", "docs/")):
                     if "*" not in rel_path:
@@ -328,6 +321,11 @@ def validate_context_documents(repo_root: Path) -> list[str]:
                                     errors.append(f"{cfile}:{idx}: Referenced path missing on disk: '{rel_path}'")
                             except (ValueError, RuntimeError):
                                 errors.append(f"{cfile}:{idx}: Referenced path missing on disk: '{rel_path}'")
+
+        missing_anchors = required_anchors - found_anchors
+        if missing_anchors:
+            for anc in sorted(missing_anchors):
+                errors.append(f"{cfile}: Missing required anchor 'ANCHOR: {anc}'")
 
     return errors
 
