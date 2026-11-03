@@ -121,12 +121,23 @@ def detect_project_stack(workspace_root: Path) -> dict:
     dev_cmd = None
 
     # Python check
-    if any((workspace_root / f).exists() for f in ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile", "poetry.lock", "uv.lock"]):
+    has_python_config = any((workspace_root / f).exists() for f in ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile", "poetry.lock", "uv.lock"])
+    has_tests_py = any((workspace_root / "tests").glob("*.py"))
+    has_subdir_py = any(
+        any(sub.glob("*.py"))
+        for sub in workspace_root.iterdir()
+        if sub.is_dir() and sub.name not in IGNORED_DIRS and not sub.name.startswith(".")
+    )
+    has_python_files = any(workspace_root.glob("*.py")) or has_tests_py or has_subdir_py
+
+    if has_python_config or has_python_files:
         languages.append("Python")
         if (workspace_root / "pyproject.toml").exists() or (workspace_root / "pytest.ini").exists() or (workspace_root / "setup.cfg").exists():
             test_cmd = "pytest"
-        else:
+        elif has_tests_py or (workspace_root / "tests").is_dir():
             test_cmd = "python3 -m unittest discover tests"
+        else:
+            test_cmd = "python3 -m unittest"
 
     # Node / TS check
     if (workspace_root / "package.json").exists():
@@ -186,23 +197,45 @@ IGNORED_DIRS = {
     ".git", ".tmp", "node_modules", "dist", "build", "target",
     "__pycache__", ".venv", "venv", ".idea", ".vscode", "docs"
 }
+SOURCE_EXTENSIONS = {".py", ".js", ".ts", ".go", ".rs", ".rb"}
+EXCLUDED_FILE_STEMS = {"__init__", "setup", "conftest"}
+
+def _format_subsystem_title(name: str) -> str:
+    return f"{name.replace('_', ' ').replace('-', ' ').title()} Subsystem"
+
+def _is_valid_module_file(path: Path, is_root: bool = False) -> bool:
+    if not path.is_file() or path.suffix not in SOURCE_EXTENSIONS or path.stem in EXCLUDED_FILE_STEMS:
+        return False
+    if is_root and (path.stem.startswith("test_") or path.stem.endswith("_test")):
+        return False
+    return True
 
 def discover_subsystems(workspace_root: Path) -> list[tuple[str, str, str]]:
     subsystems = []
     for entry in sorted(workspace_root.iterdir()):
-        if entry.is_dir() and entry.name not in IGNORED_DIRS and not entry.name.startswith("."):
+        if entry.name in IGNORED_DIRS or entry.name.startswith("."):
+            continue
+
+        if entry.is_dir():
             sub_name = entry.name
             # Check for immediate child modules under src/ or lib/
             valid_children = [
                 child for child in entry.iterdir()
-                if child.is_dir() and child.name not in IGNORED_DIRS and not child.name.startswith(".")
+                if child.name not in IGNORED_DIRS
+                and not child.name.startswith(".")
+                and (child.is_dir() or _is_valid_module_file(child))
             ]
             if sub_name in {"src", "lib", "app", "pkg"} and valid_children:
                 for child in sorted(valid_children):
-                    module_slug = f"{sub_name}-{child.name}"
-                    subsystems.append((f"{sub_name}/{child.name}/**", f"docs/context/{module_slug}.md", f"{child.name.title()} Subsystem"))
+                    child_name = child.stem if child.is_file() else child.name
+                    module_slug = f"{sub_name}-{child_name}"
+                    pattern = f"{sub_name}/{child.name}" if child.is_file() else f"{sub_name}/{child.name}/**"
+                    subsystems.append((pattern, f"docs/context/{module_slug}.md", _format_subsystem_title(child_name)))
             else:
-                subsystems.append((f"{sub_name}/**", f"docs/context/{sub_name}.md", f"{sub_name.title()} Subsystem"))
+                subsystems.append((f"{sub_name}/**", f"docs/context/{sub_name}.md", _format_subsystem_title(sub_name)))
+        elif _is_valid_module_file(entry, is_root=True):
+            sub_name = entry.stem
+            subsystems.append((entry.name, f"docs/context/{sub_name}.md", _format_subsystem_title(sub_name)))
 
     if not subsystems:
         subsystems.append(("src/**", "docs/context/core.md", "Core Application Logic"))
