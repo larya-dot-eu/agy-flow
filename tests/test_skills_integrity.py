@@ -181,7 +181,7 @@ def validate_skill_frontmatter(skill_dir: Path) -> list[str]:
 
 RESOURCE_REF_REGEX = re.compile(r'(?:[a-zA-Z0-9_\-]+/)?(?:resources|references)/[a-zA-Z0-9_\-\.]+')
 
-def validate_skill_resources_and_references(skill_dir: Path) -> list[str]:
+def validate_skill_resources_and_references(skill_dir: Path, valid_basenames: set) -> list[str]:
     skill_file = skill_dir / "SKILL.md"
     if not skill_file.exists():
         return []
@@ -205,13 +205,8 @@ def validate_skill_resources_and_references(skill_dir: Path) -> list[str]:
             # Also check if it's a generic canonical template/reference filename under any skill's resources or references
             if not any(c.exists() for c in candidates):
                 base_name = Path(rel_path).name
-                found_in_any_skill = any(
-                    (s / "resources" / base_name).exists() or (s / "references" / base_name).exists()
-                    for s in skills_root.iterdir() if s.is_dir()
-                )
-                if not found_in_any_skill:
+                if base_name not in valid_basenames:
                     errors.append(f"{skill_file}:{idx}: Referenced resource missing on disk: '{rel_path}'")
-
     return errors
 
 def validate_repo_inventory_and_permissions(repo_root: Path) -> list[str]:
@@ -368,10 +363,22 @@ def run_all_checks(repo_root: Path) -> int:
             all_errors.extend(validate_terminology(content, of))
 
     # 3. Validate skill frontmatters and relative links
+    skills_dir = repo_root / "skills"
+    valid_basenames = set()
+    if skills_dir.exists():
+        for s in skills_dir.iterdir():
+            if s.is_dir():
+                res_dir = s / "resources"
+                if res_dir.exists():
+                    valid_basenames.update(p.name for p in res_dir.iterdir() if p.is_file())
+                ref_dir = s / "references"
+                if ref_dir.exists():
+                    valid_basenames.update(p.name for p in ref_dir.iterdir() if p.is_file())
+
     for sdir in (repo_root / "skills").iterdir():
         if sdir.is_dir() and (sdir / "SKILL.md").exists():
             all_errors.extend(validate_skill_frontmatter(sdir))
-            all_errors.extend(validate_skill_resources_and_references(sdir))
+            all_errors.extend(validate_skill_resources_and_references(sdir, valid_basenames))
 
     # 4. Validate inventory parity and permissions
     all_errors.extend(validate_repo_inventory_and_permissions(repo_root))
