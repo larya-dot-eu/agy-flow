@@ -58,7 +58,7 @@ graph TD
 Choose the installation method that best fits your workflow:
 
 ### Option 1: 1-Command Universal Installer (Recommended)
-Deploys all 13 skills, canonical templates, deterministic lifecycle hooks, and prime directives directly into `~/.gemini/config/`:
+Deploys all 14 skills, canonical templates, deterministic lifecycle hooks, and prime directives directly into `~/.gemini/config/`:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/larya-dot-eu/agy-flow/main/install-skills.sh | bash
@@ -102,12 +102,13 @@ git clone https://github.com/larya-dot-eu/agy-flow.git .agents/plugins/agy-flow
 
 ## 🧩 Canonical Templates Suite (Skill `resources/`)
 
-`agy-flow` ships with 4 standardized, production-tested templates colocated inside each skill's `resources/` directory (avoiding permission boundary issues) featuring rigid **Section Anchors** (`<!-- ANCHOR: ... -->`) for deterministic search and atomic updates:
+`agy-flow` ships with 5 standardized, production-tested templates colocated inside each skill's `resources/` directory (avoiding permission boundary issues) featuring rigid **Section Anchors** (`<!-- ANCHOR: ... -->`) for deterministic search and atomic updates:
 
 1. **[`skills/flow-spec/resources/spec.md.template`](skills/flow-spec/resources/spec.md.template)**: Strict RFC 2119 Specification Template (Metadata, Abstract, Terminology, Architecture, Normative Specs, Invariants, Verification Matrix, Rollback Runbook).
 2. **[`skills/flow-plan/resources/plan.md.template`](skills/flow-plan/resources/plan.md.template)**: Bite-Sized Implementation Plan Template (5 Adversarial Questions, File Map, Right-Sized Tasks with explicit `Consumes`/`Produces` interface signatures, TDD Steps).
 3. **[`skills/flow-brainstorm/resources/context-module.md.template`](skills/flow-brainstorm/resources/context-module.md.template)**: Living Module Memory Template (Domain Purpose, Public Contracts Table, External Dependencies/MCPs, Current State Checklists).
 4. **[`skills/flow-brainstorm/resources/GEMINI.md.template`](skills/flow-brainstorm/resources/GEMINI.md.template)**: Project Root Configuration Template (Stack, Context Routing Map, Frequent Commands, Agent Directives).
+5. **[`skills/flow-prcheck/resources/prcheck-report.md.template`](skills/flow-prcheck/resources/prcheck-report.md.template)**: 4-Part PR & Diff Verification Scorecard Template (Confirmed Findings, Checks Completed, Checks Blocked/Skipped, High-Impact Questions).
 
 ---
 
@@ -135,6 +136,7 @@ To prevent documentation drift and agent amnesia with mathematical certainty:
 | **`/flow-architect`** | Distributed Architecture Specialist | Architectural Scorecards & Mermaid Models | Clean/Hexagonal architecture, DDD bounded contexts, Sagas, CQRS |
 | **`/flow-adr`** | Architecture Decision Records | `docs/adr/NNNN-[title].md` & `README.md` | Standard MADR, Y-Statement & RFC formats, lifecycle tracking |
 | **`/flow-init`** | Universal Project Bootstrap & Onboarding | `GEMINI.md`, `AGENTS.md`, `docs/context/` | Global binary `flow-init`, interactive wizard & Pre-Flight gate, $\le 200\text{ms}$ SLA |
+| **`/flow-prcheck`** | On-Demand PR & Local Diff Verification | 4-Part Verification Scorecard (`docs/plans/.tmp/`) | Global binary `flow-prcheck`, 3D triage, read-only specialists & disproof-first Validator |
 | **`/flow-skill-writer`** | Meta-Skill: Skill Authoring & Testing | Tested `SKILL.md` documents | **Test-Driven Documentation (TDD)** using subagent pressure testing |
 | **`/flow-version-update`** | Updater: In-Chat Version Upgrades | Automated suite & template sync | **Pulls latest GitHub release**, updates `~/.gemini/config/` |
 
