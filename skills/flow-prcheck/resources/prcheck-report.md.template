@@ -1,0 +1,64 @@
+# PR & Diff Verification Scorecard: [target_id]
+
+- **Target**: `[target_id]` (`[mode]`, state: `[local_state_mode]`)
+- **Review Completeness**: `[review_status]`
+- **Workload Size**: `[size_category]` (`+[total_additions]` / `-[total_deletions]` across `[total_files]` files)
+- **Change Risk Level**: `[change_risk_level]`
+- **Confidence Threshold**: `[threshold]`
+
+---
+
+## 1. Confirmed Findings <!-- ANCHOR: CONFIRMED_FINDINGS -->
+
+> Findings verified with `evidence_state` in `{"reproduced_regression", "confirmed_by_code_reasoning"}` and `ranking_score >= [threshold]`.
+
+### 🔴 [blocking] `[file]:[line]` — [Short Defect Title]
+- **Affected Behavior**: [Exact behavior broken or degraded]
+- **Trigger / Preconditions**: [Concrete input, state, or caller sequence that triggers the failure]
+- **Expected Behavior & Source**: [Expected contract and source in `docs/context/`, `docs/specs/`, or caller]
+- **Counterevidence Checked**: [Surrounding guards, callers, or tests inspected during disproof attempt]
+- **Evidence State**: `[reproduced_regression | confirmed_by_code_reasoning]`
+- **Suggested Fix**:
+```[language]
+[Concrete minimal code fix]
+```
+
+### 🟡 [important] `[file]:[line]` — [Short Defect Title]
+- **Affected Behavior**: [Exact behavior impacted]
+- **Trigger / Preconditions**: [Concrete conditions]
+- **Expected Behavior & Source**: [Expected standard or contract]
+- **Counterevidence Checked**: [Guards and callers checked]
+- **Evidence State**: `[reproduced_regression | confirmed_by_code_reasoning]`
+- **Suggested Fix**:
+```[language]
+[Concrete minimal code fix]
+```
+
+---
+
+## 2. Checks Completed <!-- ANCHOR: CHECKS_COMPLETED -->
+
+- **Triage & Static Checks**: `[completed_checks]`
+- **Dispatched Read-Only Specialists**: `[dispatched_specialists]`
+- **Enforced Invariants Checked**:
+  - `[invariant_1]`
+- **Coverage Ledger**:
+  - `[filename]`: `[reviewed | excluded_by_scope | blocked]`
+
+---
+
+## 3. Checks Blocked or Skipped <!-- ANCHOR: CHECKS_BLOCKED_OR_SKIPPED -->
+
+- **Skipped Checks**: `[skipped_checks]`
+- **Missing Companion / CI Dependencies**: `[missing_dependencies]`
+- **Mixed Staged & Unstaged Files**: `[mixed_staged_unstaged_files]`
+- **Pre-Existing Issues (Not Introduced by This Diff)**:
+  - `[pre_existing_summary_or_none]`
+
+---
+
+## 4. High-Impact Questions Requiring Human Review <!-- ANCHOR: HIGH_IMPACT_QUESTIONS -->
+
+> High-severity candidate findings classified as `blocked` (where automated validation could not complete due to disabled runtime probes, unfetched companion PRs, or external state).
+
+- **`[file]:[line]`**: [Question & verification blocker for human reviewer, or `None — all high-severity hypotheses were conclusively resolved.`]
