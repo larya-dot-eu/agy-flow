@@ -83,6 +83,16 @@ DEPRECATED_OR_INVALID_TOOLS = {
 SUBAGENT_TYPENAME_REGEX = re.compile(r'"TypeName"\s*:\s*"([^"]+)"')
 TOOL_MENTION_REGEX = re.compile(r'`([a-z_]+)`\s+tool\b')
 
+DEPRECATED_TOOL_REGEXES = [
+    (
+        bad_tool,
+        re.compile(rf"\b{bad_tool}\b"),
+        re.compile(rf"deprecated|invalid|banned|do not use\s+{bad_tool}", re.IGNORECASE)
+    )
+    for bad_tool in DEPRECATED_OR_INVALID_TOOLS
+]
+ANY_DEPRECATED_TOOL_REGEX = re.compile(rf"\b(?:{'|'.join(DEPRECATED_OR_INVALID_TOOLS)})\b")
+
 def validate_tool_and_subagent_contracts(content: str, file_path: Path) -> list[str]:
     errors = []
     lines = content.splitlines()
@@ -102,9 +112,10 @@ def validate_tool_and_subagent_contracts(content: str, file_path: Path) -> list[
                 errors.append(f"{file_path}:{idx}: Invalid or unrecognized Antigravity tool name '{tool_name}'.")
 
         # Deprecated tool direct mentions
-        for bad_tool in DEPRECATED_OR_INVALID_TOOLS:
-            if re.search(rf"\b{bad_tool}\b", line) and not re.search(rf"deprecated|invalid|banned|do not use\s+{bad_tool}", line, re.IGNORECASE):
-                errors.append(f"{file_path}:{idx}: Deprecated tool name '{bad_tool}' detected.")
+        if ANY_DEPRECATED_TOOL_REGEX.search(line):
+            for bad_tool, mention_re, exclusion_re in DEPRECATED_TOOL_REGEXES:
+                if mention_re.search(line) and not exclusion_re.search(line):
+                    errors.append(f"{file_path}:{idx}: Deprecated tool name '{bad_tool}' detected.")
 
     return errors
 
