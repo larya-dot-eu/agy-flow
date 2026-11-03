@@ -65,6 +65,18 @@ class TestGitEnvironmentInspector(unittest.TestCase):
             self.assertIsNone(info["gh_auth"])
 
 class TestStackDetector(unittest.TestCase):
+
+    def test_detect_python_no_config(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            (temp_path / "main.py").write_text("print('hello')", encoding="utf-8")
+            (temp_path / "tests").mkdir()
+            (temp_path / "tests" / "test_main.py").write_text("print('hello')", encoding="utf-8")
+
+            stack = detect_project_stack(temp_path)
+            self.assertIn("Python", stack["languages"])
+            self.assertEqual(stack["test_cmd"], "python3 -m unittest discover tests")
+
     def test_detect_python_pytest(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
