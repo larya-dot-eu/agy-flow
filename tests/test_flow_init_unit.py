@@ -1,6 +1,4 @@
 # tests/test_flow_init_unit.py
-import os
-import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -36,6 +34,17 @@ class TestGitEnvironmentInspector(unittest.TestCase):
             root = Path(tmpdir)
             info = inspect_git_environment(root, allow_git_init=False, skip_git=True)
             self.assertFalse(info["is_git_repo"])
+
+    @patch('subprocess.run')
+    def test_git_config_exception_handling(self, mock_run):
+        mock_run.side_effect = Exception('Git command failed')
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            info = inspect_git_environment(root, allow_git_init=False, skip_git=False)
+            self.assertTrue(info['is_git_repo'])
+            self.assertIsNone(info['user_name'])
+            self.assertIsNone(info['user_email'])
 
     @patch("scripts.flow_init.subprocess.run")
     def test_gh_auth_exception_handled(self, mock_run):
@@ -73,6 +82,14 @@ class TestStackDetector(unittest.TestCase):
             self.assertIn("TypeScript / JavaScript", stack["languages"])
             self.assertEqual(stack["test_cmd"], "npm test")
 
+    def test_detect_node_invalid_package_json(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "package.json").write_text('{ invalid json', encoding="utf-8")
+            stack = detect_project_stack(root)
+            self.assertIn("TypeScript / JavaScript", stack["languages"])
+            self.assertEqual(stack["test_cmd"], "npm test")
+
     def test_detect_rust_cargo(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -99,6 +116,13 @@ class TestStackDetector(unittest.TestCase):
             self.assertIn("Docker", stack["build_tools"])
             self.assertIn("Taskfile", stack["build_tools"])
             self.assertIn("Just", stack["build_tools"])
+
+    def test_detect_makefile(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "Makefile").write_text("all:\n\t@echo hi\n", encoding="utf-8")
+            stack = detect_project_stack(root)
+            self.assertIn("Make", stack["build_tools"])
 
     def test_detect_python_setup_cfg(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -139,7 +163,7 @@ class TestContextAndAdrScaffolder(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             subsystems = [("src/auth/**", "docs/context/src-auth.md", "Auth Subsystem")]
-            created = scaffold_context_and_adr(root, subsystems, force=True)
+            scaffold_context_and_adr(root, subsystems, force=True)
             self.assertTrue((root / "docs" / "context" / "src-auth.md").exists())
             self.assertTrue((root / "docs" / "adr" / "README.md").exists())
 
