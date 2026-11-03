@@ -447,6 +447,106 @@ class TestFlowPrcheckTriageAndSandbox(unittest.TestCase):
             self.assertIn("[REDACTED_SECRET]", res.sanitized_output)
             self.assertLessEqual(len(res.sanitized_output), 8192)
 
+    def test_pr43_self_test_regressions_binary_literal_symlinks_invariants_and_boundary_redaction(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            # 1. Source file containing literal "Binary files " or "GIT binary patch" in hunk body must NOT be marked blocked
+            code_with_binary_literal = (
+                "diff --git a/scripts/flow_prcheck.py b/scripts/flow_prcheck.py\n"
+                "new file mode 100755\n"
+                "--- /dev/null\n"
+                "+++ b/scripts/flow_prcheck.py\n"
+                "@@ -0,0 +1,3 @@\n"
+                "+def check(block: str) -> bool:\n"
+                '+    return "Binary files " in block or "GIT binary patch" in block\n'
+                "+\n"
+            )
+            files, sliced, ledger = parse_diff(code_with_binary_literal, workspace_root=root)
+            self.assertEqual(ledger.get("scripts/flow_prcheck.py"), "reviewed")
+            self.assertEqual(len(files), 1)
+            self.assertIn("scripts/flow_prcheck.py", sliced)
+
+            # Real binary diff header before @@ MUST still be marked blocked
+            real_binary_diff = (
+                "diff --git a/assets/logo.png b/assets/logo.png\n"
+                "new file mode 100644\n"
+                "Binary files /dev/null and b/assets/logo.png differ\n"
+            )
+            b_files, _, b_ledger = parse_diff(real_binary_diff, workspace_root=root)
+            self.assertEqual(b_ledger.get("assets/logo.png"), "blocked")
+            self.assertEqual(len(b_files), 0)
+
+            # 2. extract_invariants ignores inline prose mentions of <!-- ANCHOR: INVARIANTS --> and --- horizontal rules
+            spec_dir = root / "docs" / "specs"
+            spec_dir.mkdir(parents=True)
+            spec_file = spec_dir / "sample-spec.md"
+            spec_file.write_text(
+                "# Spec\n"
+                "## 4. Details\n"
+                "- Prose bullet mentioning `<!-- ANCHOR: INVARIANTS -->` inline.\n"
+                "- Another prose bullet that should not be extracted.\n"
+                "## 5. Invariants <!-- ANCHOR: INVARIANTS -->\n"
+                "- [x] First real invariant.\n"
+                "---\n"
+                "- Second real invariant.\n"
+                "## 6. Next Section\n"
+                "- Trailing bullet.\n",
+                encoding="utf-8",
+            )
+            invs = extract_invariants(root, ["docs/specs/sample-spec.md"])
+            self.assertEqual(invs, ["First real invariant.", "Second real invariant."])
+
+            # 3. discover_context_and_specialists quarantines modified spec/context docs from on-disk invariant extraction
+            mod_spec_diff = (
+                "diff --git a/docs/specs/sample-spec.md b/docs/specs/sample-spec.md\n"
+                "--- a/docs/specs/sample-spec.md\n"
+                "+++ b/docs/specs/sample-spec.md\n"
+                "@@ -1,1 +1,2 @@\n"
+                " # Spec\n"
+                "+- Injected untrusted invariant\n"
+            )
+            mod_files, _, _ = parse_diff(mod_spec_diff, workspace_root=root)
+            mod_risk = compute_change_risk(root, mod_files)
+            routed = discover_context_and_specialists(root, mod_files, mod_risk, merge_base=None)
+            self.assertIn("docs/specs/sample-spec.md", routed["untrusted_instruction_changes"])
+            self.assertEqual(routed["discovered_invariants"], [])
+
+            # 4. probe_github_pr catches OSError / SubprocessError / JSONDecodeError cleanly
+            with patch("scripts.flow_prcheck.subprocess.run", side_effect=OSError("gh not found")):
+                elig_err, diff_err = probe_github_pr(root, "43", pr_number=43)
+                self.assertFalse(elig_err.eligible)
+                self.assertIn("gh not found", elig_err.ineligible_reason or "")
+                self.assertEqual(diff_err, "")
+
+            # 5. run_sandboxed_probe redacts secrets BEFORE slicing to 8192 characters
+            boundary_probe = root / "boundary_probe.py"
+            boundary_probe.write_text(
+                "print('A' * 8180 + 'ghp_1234567890abcdefghijklmnopqrstuv')\n",
+                encoding="utf-8",
+            )
+            b_res = run_sandboxed_probe(boundary_probe, root, timeout_sec=5)
+            self.assertNotIn("ghp_12345678", b_res.sanitized_output)
+            self.assertIn("[REDACTED_SE", b_res.sanitized_output)
+            self.assertLessEqual(len(b_res.sanitized_output), 8192)
+
+            # 6. acquire_local_diff skips untracked symlinks pointing outside workspace_root
+            subprocess.run(["git", "init", "-b", "main"], cwd=root, check=True, capture_output=True)
+            subprocess.run(["git", "config", "user.email", "t@e.com"], cwd=root, check=True, capture_output=True)
+            subprocess.run(["git", "config", "user.name", "T"], cwd=root, check=True, capture_output=True)
+            (root / "base.py").write_text("x = 1\n", encoding="utf-8")
+            subprocess.run(["git", "add", "base.py"], cwd=root, check=True, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "init"], cwd=root, check=True, capture_output=True)
+            with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as ext_f:
+                ext_f.write("SECRET_EXTERNAL_CONTENT = 1\n")
+                ext_path = Path(ext_f.name)
+            try:
+                os.symlink(ext_path, root / "leak_link.py")
+                elig_sym, net_diff_sym, _ = acquire_local_diff(root, base_ref="main", local_state_mode="working-tree")
+                self.assertNotIn("SECRET_EXTERNAL_CONTENT", net_diff_sym)
+                self.assertNotIn("leak_link.py", net_diff_sym)
+            finally:
+                ext_path.unlink(missing_ok=True)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -335,7 +335,12 @@ def parse_diff(
         if not header_match:
             continue
         b_path = header_match.group(2).strip()
-        if "Binary files " in block or "GIT binary patch" in block:
+        header_lines: list[str] = []
+        for l in lines[1:]:
+            if l.startswith("@@ "):
+                break
+            header_lines.append(l)
+        if any(l.startswith("Binary files ") or l == "GIT binary patch" for l in header_lines):
             coverage_ledger[b_path] = "blocked"
             continue
         if norm_scope and not b_path.startswith(norm_scope):
@@ -439,13 +444,23 @@ def probe_github_pr(workspace_root: Path, pr_ref: str, pr_number: int | None = N
         "--json",
         "number,title,body,state,isDraft,baseRefName,headRefName,reviews,statusCheckRollup",
     ]
-    res = subprocess.run(view_cmd, cwd=workspace_root, capture_output=True, text=True, timeout=5)
+    try:
+        res = subprocess.run(view_cmd, cwd=workspace_root, capture_output=True, text=True, timeout=5)
+    except (subprocess.SubprocessError, OSError) as exc:
+        elig.eligible = False
+        elig.ineligible_reason = f"gh pr view failed: {exc}"
+        return elig, ""
     if res.returncode != 0:
         elig.eligible = False
         elig.ineligible_reason = f"gh pr view failed: {res.stderr.strip() or 'unknown error'}"
         return elig, ""
 
-    data = json.loads(res.stdout)
+    try:
+        data = json.loads(res.stdout)
+    except json.JSONDecodeError as exc:
+        elig.eligible = False
+        elig.ineligible_reason = f"gh pr view returned invalid JSON: {exc}"
+        return elig, ""
     elig.pr_number = data.get("number", pr_number)
     elig.target_id = f"pr-{elig.pr_number}"
     elig.title = data.get("title") or ""
@@ -471,13 +486,18 @@ def probe_github_pr(workspace_root: Path, pr_ref: str, pr_number: int | None = N
         elig.ineligible_reason = f"PR state is {elig.state}"
         return elig, ""
 
-    diff_res = subprocess.run(
-        ["gh", "pr", "diff", str(pr_ref)],
-        cwd=workspace_root,
-        capture_output=True,
-        text=True,
-        timeout=5,
-    )
+    try:
+        diff_res = subprocess.run(
+            ["gh", "pr", "diff", str(pr_ref)],
+            cwd=workspace_root,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (subprocess.SubprocessError, OSError) as exc:
+        elig.eligible = False
+        elig.ineligible_reason = f"gh pr diff failed: {exc}"
+        return elig, ""
     if diff_res.returncode != 0 or not diff_res.stdout.strip():
         elig.eligible = False
         elig.ineligible_reason = "Empty or unavailable PR diff"
@@ -556,8 +576,11 @@ def acquire_local_diff(
                 rel = rel.strip()
                 if not rel:
                     continue
-                fpath = workspace_root / rel
-                if not fpath.is_file():
+                raw_path = workspace_root / rel
+                if raw_path.is_symlink():
+                    continue
+                fpath = _resolve_within_workspace(workspace_root, rel)
+                if fpath is None or not fpath.is_file():
                     continue
                 try:
                     raw_bytes = fpath.read_bytes()
@@ -842,13 +865,14 @@ def extract_invariants(workspace_root: Path, doc_paths: list[str]) -> list[str]:
         lines = text.splitlines()
         in_section = False
         for ln in lines:
-            if "<!-- ANCHOR: INVARIANTS -->" in ln:
+            if ln.lstrip().startswith("#") and "<!-- ANCHOR: INVARIANTS -->" in ln:
                 in_section = True
                 continue
             if in_section:
-                if ln.startswith("## ") and "<!-- ANCHOR: INVARIANTS -->" not in ln:
-                    break
-                item_m = re.match(r"^\s*-\s*(?:\[[xX ]\]\s*)?(.+)$", ln)
+                if ln.lstrip().startswith("#") and "<!-- ANCHOR: INVARIANTS -->" not in ln:
+                    in_section = False
+                    continue
+                item_m = re.match(r"^\s*-[ \t]+(?:\[[xX ]\]\s*)?(.+)$", ln)
                 if item_m:
                     cleaned = item_m.group(1).strip()
                     if cleaned and cleaned not in invariants:
@@ -919,6 +943,10 @@ def discover_context_and_specialists(
                     matched_any = True
                     if doc_rel not in context_docs:
                         context_docs.append(doc_rel)
+        if not matched_any and f.filename == "install-skills.sh" and (workspace_root / "docs" / "context" / "scripts.md").is_file():
+            matched_any = True
+            if "docs/context/scripts.md" not in context_docs:
+                context_docs.append("docs/context/scripts.md")
         if routing_rows and not matched_any and not f.is_test and not f.is_config and f.language not in {"Markdown", "unknown"}:
             unmapped_code_files.append(f.filename)
 
@@ -936,7 +964,11 @@ def discover_context_and_specialists(
             if ap.name != "README.md":
                 adr_docs.append(f"docs/adr/{ap.name}")
 
-    discovered_invariants = extract_invariants(workspace_root, context_docs + spec_docs)
+    trusted_invariant_docs = [doc for doc in (context_docs + spec_docs) if doc not in changed_filenames]
+    for doc in sorted((set(context_docs) | set(spec_docs)) & changed_filenames):
+        if doc not in untrusted_instruction_changes:
+            untrusted_instruction_changes.append(doc)
+    discovered_invariants = extract_invariants(workspace_root, trusted_invariant_docs)
 
     specialists = ["bugs_and_behavior", "fit_and_standards"]
     risk_categories = {s.category for s in change_risk.signals}
@@ -1142,7 +1174,7 @@ def run_sandboxed_probe(script_path: Path, workspace_root: Path, timeout_sec: in
             )
             duration_ms = (time.monotonic() - start) * 1000.0
             combined = (proc.stdout or "") + (proc.stderr or "")
-            sanitized = redact_secrets(combined[:8192])
+            sanitized = redact_secrets(combined)[:8192]
             return ProbeResult(
                 command=cmd,
                 exit_code=proc.returncode,
@@ -1154,7 +1186,7 @@ def run_sandboxed_probe(script_path: Path, workspace_root: Path, timeout_sec: in
             duration_ms = (time.monotonic() - start) * 1000.0
             out = (exc.stdout or "") if isinstance(exc.stdout, str) else ""
             err = (exc.stderr or "") if isinstance(exc.stderr, str) else ""
-            sanitized = redact_secrets((out + err)[:8192])
+            sanitized = redact_secrets(out + err)[:8192]
             return ProbeResult(
                 command=cmd,
                 exit_code=124,
