@@ -88,6 +88,13 @@ class TestStackDetector(unittest.TestCase):
             self.assertIn("Taskfile", stack["build_tools"])
             self.assertIn("Just", stack["build_tools"])
 
+    def test_detect_makefile(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "Makefile").write_text("all:\n\t@echo hi\n", encoding="utf-8")
+            stack = detect_project_stack(root)
+            self.assertIn("Make", stack["build_tools"])
+
     def test_detect_python_setup_cfg(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
