@@ -46,6 +46,23 @@ class TestGitEnvironmentInspector(unittest.TestCase):
             self.assertIsNone(info['user_name'])
             self.assertIsNone(info['user_email'])
 
+    @patch("scripts.flow_init.subprocess.run")
+    def test_gh_auth_exception_handled(self, mock_run):
+        mock_run.side_effect = Exception("gh mock error")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            info = inspect_git_environment(root, allow_git_init=False, skip_git=False)
+            self.assertIsNone(info["gh_auth"])
+
+    @patch("scripts.flow_init.subprocess.run")
+    def test_gh_auth_non_zero_exit(self, mock_run):
+        class MockProc:
+            returncode = 1
+        mock_run.return_value = MockProc()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            info = inspect_git_environment(root, allow_git_init=False, skip_git=False)
+            self.assertIsNone(info["gh_auth"])
 
 class TestStackDetector(unittest.TestCase):
     def test_detect_python_pytest(self):
