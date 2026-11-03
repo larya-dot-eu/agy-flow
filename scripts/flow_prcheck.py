@@ -234,6 +234,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--allow-probes", action="store_true", help="Authorize sandboxed probes in PR Mode")
     parser.add_argument("--run-probe", default=None, help="Execute a probe script inside the credential-stripped sandbox")
     parser.add_argument("--verify-snapshot", default=None, help="Verify working-tree SHA-256 hashes against prcheck-context.json")
+    parser.add_argument("--cleanup-target", default=None, help="Remove intermediate .tmp files for target_id while preserving prcheck-[target_id].md")
     return parser.parse_args(argv)
 
 
@@ -1204,6 +1205,19 @@ def run_flow_prcheck(argv: list[str] | None = None) -> int:
 
     workspace_root = Path(args.dir).resolve()
 
+    if args.cleanup_target:
+        out_path = Path(args.output_dir or "docs/plans/.tmp")
+        tid = args.cleanup_target.strip()
+        for intermediate_name in (
+            f"prcheck-context-{tid}.json",
+            f"prcheck-sliced-{tid}.diff",
+            f"prcheck-candidates-{tid}.json",
+            "prcheck-context.json",
+            "prcheck-sliced.diff",
+        ):
+            (out_path / intermediate_name).unlink(missing_ok=True)
+        return 0
+
     if args.verify_snapshot:
         ok, drifted = verify_snapshot(Path(args.verify_snapshot), workspace_root)
         if not ok:
@@ -1270,11 +1284,16 @@ def run_flow_prcheck(argv: list[str] | None = None) -> int:
     if args.output_dir:
         out_path = Path(args.output_dir)
         out_path.mkdir(parents=True, exist_ok=True)
+        tid = analysis.target_id
         for stale_name in (
-            f"prcheck-candidates-{analysis.target_id}.json",
-            f"prcheck-{analysis.target_id}.md",
+            f"prcheck-candidates-{tid}.json",
+            f"prcheck-{tid}.md",
+            f"prcheck-context-{tid}.json",
+            f"prcheck-sliced-{tid}.diff",
         ):
             (out_path / stale_name).unlink(missing_ok=True)
+        (out_path / f"prcheck-context-{tid}.json").write_text(serialized + "\n", encoding="utf-8")
+        (out_path / f"prcheck-sliced-{tid}.diff").write_text(sanitized_diff, encoding="utf-8")
         (out_path / "prcheck-context.json").write_text(serialized + "\n", encoding="utf-8")
         (out_path / "prcheck-sliced.diff").write_text(sanitized_diff, encoding="utf-8")
 

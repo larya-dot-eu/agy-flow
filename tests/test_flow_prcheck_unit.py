@@ -547,22 +547,39 @@ class TestFlowPrcheckTriageAndSandbox(unittest.TestCase):
             finally:
                 ext_path.unlink(missing_ok=True)
 
-            # 7. Target-scoped .tmp cleanup removes only stale artifacts for the active target_id, preserving other PRs
+            # 7. Target-scoped .tmp files & --cleanup-target removes only active target_id's intermediate files
             out_dir = root / "tmp_out"
             out_dir.mkdir(parents=True, exist_ok=True)
             stale_cand_file = out_dir / "prcheck-candidates-file.json"
             stale_rep_file = out_dir / "prcheck-file.md"
             other_pr_rep = out_dir / "prcheck-pr-42.md"
             other_pr_cand = out_dir / "prcheck-candidates-pr-42.json"
-            for p in (stale_cand_file, stale_rep_file, other_pr_rep, other_pr_cand):
+            other_pr_ctx = out_dir / "prcheck-context-pr-42.json"
+            other_pr_diff = out_dir / "prcheck-sliced-pr-42.diff"
+            for p in (stale_cand_file, stale_rep_file, other_pr_rep, other_pr_cand, other_pr_ctx, other_pr_diff):
                 p.write_text("stale\n", encoding="utf-8")
             diff_file = root / "clean.diff"
             diff_file.write_text(code_with_binary_literal, encoding="utf-8")
             run_flow_prcheck(["--dir", str(root), "--diff-file", str(diff_file), "--output-dir", str(out_dir)])
             self.assertFalse(stale_cand_file.exists())
             self.assertFalse(stale_rep_file.exists())
+            self.assertTrue((out_dir / "prcheck-context-file.json").exists())
+            self.assertTrue((out_dir / "prcheck-sliced-file.diff").exists())
+            # Simulate scorecard written, then run --cleanup-target file
+            (out_dir / "prcheck-file.md").write_text("# Scorecard\n", encoding="utf-8")
+            (out_dir / "prcheck-candidates-file.json").write_text("[]\n", encoding="utf-8")
+            self.assertEqual(
+                run_flow_prcheck(["--output-dir", str(out_dir), "--cleanup-target", "file"]),
+                0,
+            )
+            self.assertTrue((out_dir / "prcheck-file.md").exists())
+            self.assertFalse((out_dir / "prcheck-context-file.json").exists())
+            self.assertFalse((out_dir / "prcheck-sliced-file.diff").exists())
+            self.assertFalse((out_dir / "prcheck-candidates-file.json").exists())
             self.assertTrue(other_pr_rep.exists())
             self.assertTrue(other_pr_cand.exists())
+            self.assertTrue(other_pr_ctx.exists())
+            self.assertTrue(other_pr_diff.exists())
 
 
 if __name__ == "__main__":

@@ -44,11 +44,11 @@ flowchart TD
    - Check `docs/plans/.tmp` using the `list_dir` tool.
    - Perform all file writes via the `write_to_file` tool (never run `mkdir -p` or `touch` via `run_command`).
 2. **Execute Triage CLI**:
-   - Run `scripts/flow-prcheck.sh` via the `run_command` tool (which automatically removes only the prior `prcheck-candidates-[target_id].json` and `prcheck-[target_id].md` for the active `target_id` while preserving all other `.tmp` files):
+   - Run `scripts/flow-prcheck.sh` via the `run_command` tool (which writes target-scoped `prcheck-context-[target_id].json` and `prcheck-sliced-[target_id].diff` and unlinks only stale artifacts for that `target_id`):
      ```bash
      bash scripts/flow-prcheck.sh [target] [flags] --output-dir docs/plans/.tmp --json
      ```
-   - Read `docs/plans/.tmp/prcheck-context.json` and `docs/plans/.tmp/prcheck-sliced.diff` using the `view_file` tool.
+   - Read `docs/plans/.tmp/prcheck-context-[target_id].json` and `docs/plans/.tmp/prcheck-sliced-[target_id].diff` using the `view_file` tool.
    - If `eligibility.eligible` is `false`, report `eligibility.ineligible_reason` and stop immediately.
 
 ---
@@ -90,9 +90,13 @@ flowchart TD
    - Read `docs/plans/.tmp/prcheck-[target_id].md` written by the Validator subagent (populated from [`resources/prcheck-report.md.template`](resources/prcheck-report.md.template)) using the `view_file` tool.
    - Include only findings with `evidence_state` in `{"reproduced_regression", "confirmed_by_code_reasoning"}` and `ranking_score >= threshold` under **Confirmed Findings** (`🔴 [blocking]` or `🟡 [important]`).
    - Preserve `blocked` high-severity findings under **High-Impact Questions Requiring Human Review** rather than silently dropping them.
+   - Once `docs/plans/.tmp/prcheck-[target_id].md` is verified (and after any `--fix` snapshot check completes), clean up the intermediate `.tmp` files (`prcheck-context-[target_id].json`, `prcheck-sliced-[target_id].diff`, `prcheck-candidates-[target_id].json`) via:
+     ```bash
+     python3 scripts/flow_prcheck.py --output-dir docs/plans/.tmp --cleanup-target [target_id]
+     ```
 2. **Guarded `--fix` Protocol (Local Mode Only)**:
    - **Step 1 (Proposed Patch First)**: Ensure `docs/plans/.tmp/prcheck-[target_id].md` is written with exact proposed patches before any edit.
-   - **Step 2 (Snapshot Verification & High-Risk Gate)**: Run `python3 scripts/flow_prcheck.py --verify-snapshot docs/plans/.tmp/prcheck-context.json`. If it exits `3` (`STALE_SNAPSHOT`), abort and report the drifted files. If any target file has `AUTH_AND_PERMISSIONS`, `DATA_AND_MIGRATIONS`, `EXECUTION_AND_SHELL`, or `AGENT_INSTRUCTION_OR_HOOK_CHANGE` signals, request explicit human confirmation via the `ask_question` tool before editing.
+   - **Step 2 (Snapshot Verification & High-Risk Gate)**: Run `python3 scripts/flow_prcheck.py --verify-snapshot docs/plans/.tmp/prcheck-context-[target_id].json`. If it exits `3` (`STALE_SNAPSHOT`), abort and report the drifted files. If any target file has `AUTH_AND_PERMISSIONS`, `DATA_AND_MIGRATIONS`, `EXECUTION_AND_SHELL`, or `AGENT_INSTRUCTION_OR_HOOK_CHANGE` signals, request explicit human confirmation via the `ask_question` tool before editing.
    - **Step 3 (Surgical Apply Without Staging)**: Apply fixes via the `replace_file_content` tool in the working tree only. **NEVER run `git add`**.
    - **Step 4 (Post-Fix Test & Independent Validator Re-Review)**: Run the affected test suite via `run_command` and dispatch the independent Validator subagent (`"TypeName": "self"`) to confirm the repair and verify no regressions were introduced.
 3. **GitHub Review Publishing (`--draft-review` / `--comment` in PR Mode)**:
