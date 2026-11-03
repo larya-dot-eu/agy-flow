@@ -164,7 +164,7 @@ class TestResourceAndReferenceValidator(unittest.TestCase):
             self.assertTrue(any("Referenced resource missing" in e for e in errors))
 
 class TestInventoryAndPermissionsValidator(unittest.TestCase):
-    def test_repo_inventory_matches_13_skills(self):
+    def test_repo_inventory_matches_14_skills(self):
         repo_root = Path(__file__).resolve().parent.parent
         errors = validate_repo_inventory_and_permissions(repo_root)
         self.assertEqual(errors, [])
@@ -333,6 +333,41 @@ class TestReviewDirectoryAndToolDiscipline(unittest.TestCase):
         self.assertTrue(gitignore_path.exists(), "Missing .gitignore")
         gitignore_text = gitignore_path.read_text(encoding="utf-8")
         self.assertIn("docs/**/.tmp/", gitignore_text, ".gitignore must retain exclusion of docs/**/.tmp/")
+
+    def test_flow_prcheck_orchestrator_and_references_discipline(self):
+        skill_path = self.repo_root / "skills" / "flow-prcheck" / "SKILL.md"
+        spec_ref = self.repo_root / "skills" / "flow-prcheck" / "references" / "specialists.md"
+        val_ref = self.repo_root / "skills" / "flow-prcheck" / "references" / "validator-and-probes.md"
+        tpl_path = self.repo_root / "skills" / "flow-prcheck" / "resources" / "prcheck-report.md.template"
+
+        for p in (skill_path, spec_ref, val_ref, tpl_path):
+            self.assertTrue(p.exists(), f"Missing {p}")
+
+        skill_text = skill_path.read_text(encoding="utf-8")
+        spec_text = spec_ref.read_text(encoding="utf-8")
+        val_text = val_ref.read_text(encoding="utf-8")
+        tpl_text = tpl_path.read_text(encoding="utf-8")
+
+        self.assertIn("define_subagent", skill_text)
+        self.assertIn("EnableWriteTools", skill_text)
+        self.assertIn("--verify-snapshot", skill_text)
+        self.assertIn("discovered_invariants", spec_text)
+        self.assertIn("reproduced_regression", val_text)
+        self.assertIn("confirmed_by_code_reasoning", val_text)
+        self.assertIn("🔴 [blocking]", tpl_text)
+        self.assertIn("🟡 [important]", tpl_text)
+        self.assertIn("<!-- ANCHOR: CONFIRMED_FINDINGS -->", tpl_text)
+        self.assertIn("<!-- ANCHOR: HIGH_IMPACT_QUESTIONS -->", tpl_text)
+        for text, source in [(skill_text, "SKILL.md"), (val_text, "validator-and-probes.md")]:
+            self.assertIn("write_to_file", text, f"{source} must mandate write_to_file")
+            self.assertTrue(
+                bool(re.search(r'(?:do not|must not|never|prohibit|forbid).*mkdir', text, re.IGNORECASE)),
+                f"{source} must explicitly forbid mkdir",
+            )
+            self.assertTrue(
+                bool(re.search(r'(?:do not|must not|never|prohibit|forbid).*(?:touch|bash)', text, re.IGNORECASE)),
+                f"{source} must explicitly forbid touch or bash",
+            )
 
 if __name__ == "__main__":
     unittest.main()

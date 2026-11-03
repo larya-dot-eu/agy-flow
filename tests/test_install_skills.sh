@@ -49,6 +49,14 @@ if [ ! -x "${HOME}/.local/bin/flow-init" ]; then
     echo "Test 1 Failed: ${HOME}/.local/bin/flow-init is not executable"
     exit 1
 fi
+if [ ! -L "${HOME}/.local/bin/flow-prcheck" ] || [ "$(readlink "${HOME}/.local/bin/flow-prcheck")" != "${CONFIG_DIR}/scripts/flow-prcheck.sh" ]; then
+    echo "Test 1 Failed: Symlink ${HOME}/.local/bin/flow-prcheck incorrect or missing"
+    exit 1
+fi
+if [ ! -x "${HOME}/.local/bin/flow-prcheck" ]; then
+    echo "Test 1 Failed: ${HOME}/.local/bin/flow-prcheck is not executable"
+    exit 1
+fi
 
 # Test executing directly via the symlink
 mkdir -p "$TEST_DIR/sample_run"

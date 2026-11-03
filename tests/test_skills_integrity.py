@@ -233,9 +233,9 @@ def validate_repo_inventory_and_permissions(repo_root: Path) -> list[str]:
 
     discovered_skills = {p.name for p in skills_dir.iterdir() if p.is_dir() and (p / "SKILL.md").exists()}
 
-    # Verify exact 13 flow skills exist
-    if len(discovered_skills) < 13:
-        errors.append(f"Expected at least 13 flow skills, but found {len(discovered_skills)}: {sorted(discovered_skills)}")
+    # Verify exact 14 flow skills exist
+    if len(discovered_skills) < 14:
+        errors.append(f"Expected at least 14 flow skills, but found {len(discovered_skills)}: {sorted(discovered_skills)}")
 
     # Check README.md, HOWTO.md, and flow-master/SKILL.md
     check_files = [
@@ -268,6 +268,7 @@ def validate_repo_inventory_and_permissions(repo_root: Path) -> list[str]:
         repo_root / "install-skills.sh",
         repo_root / "scripts" / "context-guard.sh",
         repo_root / "scripts" / "flow-init.sh",
+        repo_root / "scripts" / "flow-prcheck.sh",
     ]
     for script in scripts:
         if script.exists():
@@ -396,7 +397,7 @@ def run_all_checks(repo_root: Path) -> int:
         return 1
 
     print("\n✅ [SUCCESS] All skill markdown files, templates, tools, frontmatters, and inventories validated cleanly!")
-    print(f"   Inspected {len(all_md_files)} markdown/template files across all 13 skills.")
+    print(f"   Inspected {len(all_md_files)} markdown/template files across all 14 skills.")
     print("=" * 65)
     return 0
 

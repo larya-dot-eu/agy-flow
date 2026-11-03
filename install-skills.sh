@@ -136,10 +136,12 @@ echo "[✓] Symlinked ${COMPAT_DIR}/skills -> ${SKILLS_DIR}"
 LOCAL_BIN="${HOME}/.local/bin"
 mkdir -p "${LOCAL_BIN}"
 ln -sfn "${CONFIG_DIR}/scripts/flow-init.sh" "${LOCAL_BIN}/flow-init"
-for f in "${CONFIG_DIR}/scripts/flow-init.sh" "${CONFIG_DIR}/scripts/flow_init.py" "${LOCAL_BIN}/flow-init"; do
+ln -sfn "${CONFIG_DIR}/scripts/flow-prcheck.sh" "${LOCAL_BIN}/flow-prcheck"
+for f in "${CONFIG_DIR}/scripts/flow-init.sh" "${CONFIG_DIR}/scripts/flow_init.py" "${LOCAL_BIN}/flow-init" "${CONFIG_DIR}/scripts/flow-prcheck.sh" "${CONFIG_DIR}/scripts/flow_prcheck.py" "${LOCAL_BIN}/flow-prcheck"; do
     [ -e "$f" ] && chmod +x "$f" || true
 done
 echo "[✓] Symlinked ${LOCAL_BIN}/flow-init -> ${CONFIG_DIR}/scripts/flow-init.sh"
+echo "[✓] Symlinked ${LOCAL_BIN}/flow-prcheck -> ${CONFIG_DIR}/scripts/flow-prcheck.sh"
 
 if [[ ":${PATH:-}:" != *":${LOCAL_BIN}:"* ]]; then
     echo "[!] Notice: ${LOCAL_BIN} is not in your \$PATH. Add 'export PATH=\"\$HOME/.local/bin:\$PATH\"' to your ~/.bashrc or ~/.zshrc."
