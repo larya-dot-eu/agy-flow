@@ -121,7 +121,7 @@ class TestContextAndAdrScaffolder(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             subsystems = [("src/auth/**", "docs/context/src-auth.md", "Auth Subsystem")]
-            created = scaffold_context_and_adr(root, subsystems, force=True)
+            scaffold_context_and_adr(root, subsystems, force=True)
             self.assertTrue((root / "docs" / "context" / "src-auth.md").exists())
             self.assertTrue((root / "docs" / "adr" / "README.md").exists())
 
