@@ -77,6 +77,15 @@ class TestStackDetector(unittest.TestCase):
             self.assertIn("Python", stack["languages"])
             self.assertEqual(stack["test_cmd"], "python3 -m unittest discover tests")
 
+    def test_detect_python_no_config_without_tests_dir(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            (temp_path / "src").mkdir()
+            (temp_path / "src" / "worker.py").write_text("x = 1\n", encoding="utf-8")
+            stack = detect_project_stack(temp_path)
+            self.assertIn("Python", stack["languages"])
+            self.assertEqual(stack["test_cmd"], "python3 -m unittest")
+
     def test_detect_python_pytest(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -154,6 +163,28 @@ class TestTopologyDetector(unittest.TestCase):
             subsystems = discover_subsystems(root)
             paths = [s[0] for s in subsystems]
             self.assertTrue(any("src/auth" in p or "src" in p for p in paths))
+
+    def test_discover_file_subsystems_and_filter_non_code(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "main.py").write_text("print('entry')\n", encoding="utf-8")
+            (root / "data_loader.py").write_text("x = 1\n", encoding="utf-8")
+            (root / "test_root.py").write_text("pass\n", encoding="utf-8")
+            (root / "setup.py").write_text("pass\n", encoding="utf-8")
+            (root / "src").mkdir()
+            (root / "src" / "__init__.py").write_text("", encoding="utf-8")
+            (root / "src" / "README.md").write_text("# Doc\n", encoding="utf-8")
+            (root / "src" / "config.json").write_text("{}\n", encoding="utf-8")
+            (root / "src" / "auth_service.py").write_text("pass\n", encoding="utf-8")
+            subsystems = discover_subsystems(root)
+            self.assertIn(("main.py", "docs/context/main.md", "Main Subsystem"), subsystems)
+            self.assertIn(("data_loader.py", "docs/context/data_loader.md", "Data Loader Subsystem"), subsystems)
+            self.assertIn(("src/auth_service.py", "docs/context/src-auth_service.md", "Auth Service Subsystem"), subsystems)
+            paths = [s[0] for s in subsystems]
+            self.assertNotIn("src/README.md", paths)
+            self.assertNotIn("src/config.json", paths)
+            self.assertNotIn("setup.py", paths)
+            self.assertNotIn("test_root.py", paths)
 
 
 class TestGeminiAndAgentsScaffolder(unittest.TestCase):
