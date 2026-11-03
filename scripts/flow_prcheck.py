@@ -1270,6 +1270,11 @@ def run_flow_prcheck(argv: list[str] | None = None) -> int:
     if args.output_dir:
         out_path = Path(args.output_dir)
         out_path.mkdir(parents=True, exist_ok=True)
+        for stale_name in (
+            f"prcheck-candidates-{analysis.target_id}.json",
+            f"prcheck-{analysis.target_id}.md",
+        ):
+            (out_path / stale_name).unlink(missing_ok=True)
         (out_path / "prcheck-context.json").write_text(serialized + "\n", encoding="utf-8")
         (out_path / "prcheck-sliced.diff").write_text(sanitized_diff, encoding="utf-8")
 

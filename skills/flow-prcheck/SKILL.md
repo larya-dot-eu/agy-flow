@@ -44,7 +44,7 @@ flowchart TD
    - Check `docs/plans/.tmp` using the `list_dir` tool.
    - Perform all file writes via the `write_to_file` tool (never run `mkdir -p` or `touch` via `run_command`).
 2. **Execute Triage CLI**:
-   - Run `scripts/flow-prcheck.sh` via the `run_command` tool:
+   - Run `scripts/flow-prcheck.sh` via the `run_command` tool (which automatically removes only the prior `prcheck-candidates-[target_id].json` and `prcheck-[target_id].md` for the active `target_id` while preserving all other `.tmp` files):
      ```bash
      bash scripts/flow-prcheck.sh [target] [flags] --output-dir docs/plans/.tmp --json
      ```
