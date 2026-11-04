@@ -322,7 +322,7 @@ def validate_context_documents(repo_root: Path) -> list[str]:
             for match_path in PATH_REF_REGEX.finditer(line):
                 rel_path = match_path.group(1)
                 # Only check concrete paths belonging to project subsystems (scripts/, tests/, skills/, rules/, docs/)
-                if any(rel_path.startswith(prefix) for prefix in ("scripts/", "tests/", "skills/", "rules/", "docs/")):
+                if rel_path.startswith(("scripts/", "tests/", "skills/", "rules/", "docs/")):
                     if "*" not in rel_path:
                         if ".." in rel_path.split("/") or "/../" in rel_path:
                             errors.append(f"{cfile}:{idx}: Directory traversal prohibited in referenced path: '{rel_path}'")
