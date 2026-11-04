@@ -35,7 +35,7 @@ class TestGitEnvironmentInspector(unittest.TestCase):
             info = inspect_git_environment(root, allow_git_init=False, skip_git=True)
             self.assertFalse(info["is_git_repo"])
 
-    @patch('subprocess.run')
+    @patch('scripts.flow_init.subprocess.run')
     def test_git_config_exception_handling(self, mock_run):
         mock_run.side_effect = Exception('Git command failed')
         with tempfile.TemporaryDirectory() as tmpdir:
