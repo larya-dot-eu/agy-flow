@@ -10,6 +10,7 @@ from scripts.flow_init import (
     generate_gemini_and_agents_md,
     scaffold_context_and_adr,
     run_flow_init,
+    parse_args
 )
 
 class TestGitEnvironmentInspector(unittest.TestCase):
@@ -286,6 +287,47 @@ class TestInteractiveWizard(unittest.TestCase):
             self.assertFalse((root / "docs" / "context" / "src-mod_a.md").exists())
             gemini_content = (root / "GEMINI.md").read_text(encoding="utf-8")
             self.assertIn("No custom subsystem routing mapped", gemini_content)
+
+
+class TestParseArgs(unittest.TestCase):
+    def test_parse_args_defaults(self):
+        args = parse_args([])
+        self.assertEqual(args.dir, ".")
+        self.assertFalse(args.yes)
+        self.assertIsNone(args.name)
+        self.assertFalse(args.git_init)
+        self.assertFalse(args.no_git)
+        self.assertFalse(args.force)
+
+    def test_parse_args_all_flags(self):
+        args = parse_args([
+            "-d", "/tmp/test",
+            "-y",
+            "--name", "my-project",
+            "--git-init",
+            "--no-git",
+            "-f"
+        ])
+        self.assertEqual(args.dir, "/tmp/test")
+        self.assertTrue(args.yes)
+        self.assertEqual(args.name, "my-project")
+        self.assertTrue(args.git_init)
+        self.assertTrue(args.no_git)
+        self.assertTrue(args.force)
+
+    def test_parse_args_long_flags(self):
+        args = parse_args([
+            "--dir", "/tmp/test2",
+            "--yes",
+            "--force"
+        ])
+        self.assertEqual(args.dir, "/tmp/test2")
+        self.assertTrue(args.yes)
+        self.assertTrue(args.force)
+
+    def test_parse_args_invalid_argument(self):
+        with self.assertRaises(SystemExit):
+            parse_args(["--unknown-flag"])
 
 if __name__ == "__main__":
     unittest.main()
