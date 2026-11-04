@@ -350,25 +350,30 @@ def run_all_checks(repo_root: Path) -> int:
     all_errors = []
 
     # 1. Scan all markdown and template files across repository for code fences
-    all_md_files = list(repo_root.glob("skills/**/*.md")) + \
-                   list(repo_root.glob("skills/**/*.template")) + \
+    skills_md = list(repo_root.glob("skills/**/*.md"))
+    skills_template = list(repo_root.glob("skills/**/*.template"))
+    rules_md = list(repo_root.glob("rules/*.md"))
+    root_files = [repo_root / "README.md", repo_root / "HOWTO.md"]
+
+    all_md_files = skills_md + \
+                   skills_template + \
                    list(repo_root.glob("docs/**/*.md")) + \
-                   list(repo_root.glob("rules/*.md")) + \
-                   [repo_root / "README.md", repo_root / "HOWTO.md"]
+                   rules_md + \
+                   root_files
 
     for mf in all_md_files:
         if mf.exists():
-            content = mf.read_text(encoding="utf-8")
-            all_errors.extend(validate_code_fences(content, mf))
-            all_errors.extend(validate_section_anchors(content, mf))
+            content_text = mf.read_text(encoding="utf-8")
+            all_errors.extend(validate_code_fences(content_text, mf))
+            all_errors.extend(validate_section_anchors(content_text, mf))
 
     # 2. Scan skills, rules, root docs, and permanent docs for tool contracts & discipline
-    operational_files = list(repo_root.glob("skills/**/*.md")) + \
-                        list(repo_root.glob("skills/**/*.template")) + \
+    operational_files = skills_md + \
+                        skills_template + \
                         list(repo_root.glob("docs/context/**/*.md")) + \
                         list(repo_root.glob("docs/adr/**/*.md")) + \
-                        list(repo_root.glob("rules/*.md")) + \
-                        [repo_root / "README.md", repo_root / "HOWTO.md"]
+                        rules_md + \
+                        root_files
 
     for of in operational_files:
         if of.exists():
