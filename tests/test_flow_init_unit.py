@@ -48,7 +48,12 @@ class TestGitEnvironmentInspector(unittest.TestCase):
 
     @patch("scripts.flow_init.subprocess.run")
     def test_gh_auth_exception_handled(self, mock_run):
-        mock_run.side_effect = Exception("gh mock error")
+        def mock_side_effect(args, **kwargs):
+            if args and args[0] == "gh":
+                raise Exception("gh mock error")
+            return MagicMock(returncode=0, stdout="")
+        mock_run.side_effect = mock_side_effect
+
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             info = inspect_git_environment(root, allow_git_init=False, skip_git=False)
